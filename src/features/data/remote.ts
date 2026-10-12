@@ -9,7 +9,7 @@ export async function fetchSnapshot(): Promise<Snapshot> {
   const since = addDays(taipeiToday(), -42)
   const r = await Promise.all([
     supabase.from('kt_tasks').select('id,title,slot,days,active,sort'),
-    supabase.from('kt_asks').select('id,day,title,created_at,removed_at').gte('day', since),
+    supabase.from('kt_asks').select('id,day,title,created_at,removed_at,source,due').gte('day', since),
     supabase.from('kt_checks').select('day,task_id,checked_at').gte('day', since),
     supabase.from('kt_messages').select('id,role,body,created_at').order('created_at', { ascending: false }).limit(300),
     supabase.from('kt_reads').select('role,read_at'),
@@ -50,7 +50,7 @@ export async function send(op: Op): Promise<Err> {
       case 'uncheck':
         return supabase.from('kt_checks').delete().eq('day', op.day).eq('task_id', op.task_id)
       case 'ask':
-        return supabase.from('kt_asks').upsert({ id: op.id, day: op.day, title: op.title }, { onConflict: 'id', ignoreDuplicates: true })
+        return supabase.from('kt_asks').upsert({ id: op.id, day: op.day, title: op.title, source: op.source ?? 'mom', due: op.due ?? null }, { onConflict: 'id', ignoreDuplicates: true })
       case 'unask':
         return supabase.from('kt_asks').update({ removed_at: op.at }).eq('id', op.id)
       case 'msg':

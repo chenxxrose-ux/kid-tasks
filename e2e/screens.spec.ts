@@ -22,6 +22,18 @@ test('每一頁的截圖', async ({ browser }) => {
   await mom.getByRole('button', { name: '交代一件事' }).click()
   await mom.getByLabel('要交代的事').fill('把客廳的報紙拿去回收')
   await mom.getByRole('button', { name: '交代', exact: true }).click()
+  const add = async (title: string, when: string) => {
+    const box = kid.locator('.teach')
+    await box.getByRole('button', { name: '記下老師說的事' }).click()
+    await box.getByLabel('老師交代什麼').fill(title)
+    await box.getByRole('button', { name: when }).click()
+    await box.getByRole('button', { name: '記下來' }).click()
+  }
+  await add('數學習作第 3 頁訂正完交給小老師', '明天')
+  await add('聯絡簿請家長簽名', '老師沒說')
+  await kid.locator('.teach').getByRole('button', { name: '記下老師說的事' }).click()
+  await kid.screenshot({ path: `${OUT}/1b-kid-teacher-form.png`, fullPage: true })
+  await kid.locator('.teach').getByRole('button', { name: '取消' }).click()
   await mom.getByRole('button', { name: /^留言/ }).click()
   await mom.getByRole('textbox', { name: '留言' }).fill('段考加油！今天早點睡，明天早上記得帶水壺和體育服')
   await mom.getByRole('button', { name: '送出' }).click()

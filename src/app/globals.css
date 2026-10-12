@@ -4,6 +4,8 @@
   --bg:#FAF4EA; --card:#FFFDF9; --fg:#3B2F27; --muted:#6F6052; --line:#EADFD0;
   --accent:#B8641F; --accent-soft:#F6E3CF; --warn:#A8432A; --warn-soft:#FBE6DC; --danger:#A8382A;
   --ink:#4A3426; --on-ink:#FFFFFF; --bubble:#F1E8DC; --box:#BFAE9C; --hero:#6B4630; --on-hero:#FFFFFF;
+  /* 老師說：黑板綠，跟媽媽們交代的橘色分開 */
+  --board:#3E5A48; --board-soft:#E8EEE6;
   --font:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif;
   color-scheme:light;
 }
@@ -143,3 +145,12 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .foot{font-size:13px;color:var(--muted);line-height:1.6}
 .danger{color:var(--danger)!important}
 .topban:not(:empty){padding:12px 16px 0}
+.teach{background:var(--board-soft);border:2px solid var(--board);border-radius:18px;padding:12px}
+.teach h2{margin:0 4px 10px;font-size:18px;font-weight:900;color:var(--board);display:flex;justify-content:space-between;align-items:baseline}
+.teach h2 span{font-size:14px;font-weight:700}
+.teach .tt b{font-size:18px;font-weight:700}
+.teach .tt .addlink{color:var(--board);font-size:16px}
+.teach .done .box{background:var(--board);border-color:var(--board)}
+.teach .pill[aria-pressed="true"]{background:var(--board);border-color:var(--board)}
+.teach .btn:not(.ghost){background:var(--board)}
+.due{font-weight:700}.due.late{color:var(--warn)}.due.soon{color:var(--accent)}

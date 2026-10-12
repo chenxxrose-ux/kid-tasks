@@ -2,7 +2,8 @@ export type Role = 'kid' | 'mom'
 export type Slot = 'morning' | 'home' | 'extra' | 'study' | 'meal' | 'bath' | 'night' | 'ask'
 
 export type Task = { id: string; title: string; slot: Exclude<Slot, 'ask'>; days: number[]; active: boolean; sort: number }
-export type Ask = { id: string; day: string; title: string; created_at: string; removed_at: string | null }
+/** source：mom 是媽媽們交代的（只限那一天），teacher 是老師說的（做完前一直留著，可以有期限） */
+export type Ask = { id: string; day: string; title: string; created_at: string; removed_at: string | null; source?: 'mom' | 'teacher'; due?: string | null }
 export type Check = { day: string; task_id: string; checked_at: string }
 export type Message = { id: string; role: Role; body: string; created_at: string }
 export type Read = { role: Role; read_at: string }
@@ -35,7 +36,7 @@ export const emptySnapshot = (): Snapshot => ({ tasks: [], asks: [], checks: [],
 export type Op =
   | { t: 'check'; day: string; task_id: string; checked_at: string }
   | { t: 'uncheck'; day: string; task_id: string }
-  | { t: 'ask'; id: string; day: string; title: string; at: string }
+  | { t: 'ask'; id: string; day: string; title: string; at: string; source?: 'mom' | 'teacher'; due?: string | null }
   | { t: 'unask'; id: string; at: string }
   | { t: 'msg'; id: string; role: Role; body: string; at: string }
   | { t: 'read'; role: Role; at: string }

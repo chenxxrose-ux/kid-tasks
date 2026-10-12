@@ -2,7 +2,8 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useStore, newId } from '../data/store'
 import { dayNote, isOff } from '../../lib/calendar'
 import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from '../../lib/dates'
-import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, visitsOn, type DayTask } from '../../lib/schedule'
+import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
+import { TeacherBox } from './Teacher'
 import { Check } from '../../ui/icons'
 import { MsgBanner, SyncNotes } from '../../ui/kit'
 
@@ -108,8 +109,10 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
     setToast(null)
   }
 
+  const teach = teacherItems(day, data)
   const todo = ts.filter((t) => !c.has(t.id))
-  const done = ts.filter((t) => c.has(t.id))
+  // 今天做完的也包含今天勾掉的老師說
+  const done = [...teach.filter((t) => c.has(t.id)).map((t) => ({ id: t.id, title: t.title, slot: 'ask' as const })), ...ts.filter((t) => c.has(t.id))]
   const asks = todo.filter((t) => t.slot === 'ask')
   const fin = ts.length > 0 && todo.length === 0
 
@@ -119,7 +122,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
       <main>
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
-        {fin ? <FinCard day={day} count={ts.length} last={done.map((t) => c.get(t.id)!).sort().pop()!} /> : null}
+        {fin ? <FinCard day={day} count={ts.length} last={ts.map((t) => c.get(t.id)!).sort().pop()!} /> : null}
         {asks.length ? (
           <section className="askbox">
             <h2>
@@ -132,6 +135,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
             </div>
           </section>
         ) : null}
+        <TeacherBox items={teach} onTick={(t) => tick({ id: t.id, title: t.title, slot: 'ask' })} />
         <ExamCard day={day} />
         {!fin ? (
           <div className="card">
@@ -284,6 +288,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
             </div>
           </section>
         ) : null}
+        {day === today ? <TeacherBox items={teacherItems(today, data, 7)} /> : null}
         <ExamCard day={day} onFill={goPlan} />
         {PARTS.map((p) => {
           const list = ts.filter((t) => p.slots.includes(t.slot))

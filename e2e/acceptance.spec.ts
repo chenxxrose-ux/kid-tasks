@@ -93,6 +93,37 @@ test('媽媽們交代的事，樂樂馬上看到；樂樂打勾，媽媽們看�
   await expect(mom.locator('.askbox h2')).toContainText('0 / 1 完成')
 })
 
+test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們看到時間', async () => {
+  const kbox = kid.locator('.teach')
+  await kbox.getByRole('button', { name: '記下老師說的事' }).click()
+  await kbox.getByRole('button', { name: '記下來' }).click()
+  await expect(kbox.getByRole('alert')).toHaveText('請寫老師交代什麼')
+  await kbox.getByLabel('老師交代什麼').fill('帶直笛')
+  await kbox.getByRole('button', { name: '記下來' }).click()
+  await expect(kbox).toContainText('明天到期')
+
+  const mbox = mom.locator('.teach')
+  await expect(mbox).toContainText('帶直笛')
+  await expect(mbox.locator('h2')).toContainText('0 / 1 完成')
+
+  await kbox.getByRole('button', { name: /帶直笛/ }).click()
+  await expect(kbox.getByRole('button', { name: /帶直笛/ })).toHaveCount(0)
+  await expect(mbox.locator('h2')).toContainText('1 / 1 完成')
+  await expect(mbox.locator('.time')).toHaveText(/^\d\d:\d\d$/)
+  await kid.locator('.toast').getByRole('button', { name: '復原' }).click()
+  await expect(mbox.locator('h2')).toContainText('0 / 1 完成')
+
+  // 媽媽們也能記、能拿掉
+  await mbox.getByRole('button', { name: '記下老師說的事' }).click()
+  await mbox.getByLabel('老師交代什麼').fill('繳班費')
+  await mbox.getByRole('button', { name: '老師沒說' }).click()
+  await mbox.getByRole('button', { name: '記下來' }).click()
+  await expect(kbox).toContainText('繳班費')
+  await mbox.getByRole('button', { name: '拿掉「繳班費」' }).click()
+  await mbox.getByRole('button', { name: '確定拿掉' }).click()
+  await expect(kbox).not.toContainText('繳班費')
+})
+
 test('留言：新留言每一頁都看得到，按知道了或回覆才消失', async () => {
   await mom.getByRole('button', { name: /^留言/ }).click()
   await mom.getByRole('textbox', { name: '留言' }).fill('今天早點睡')
