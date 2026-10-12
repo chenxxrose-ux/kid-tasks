@@ -370,7 +370,7 @@ function AskForm({ day, onAdd }: { day: string; onAdd: (title: string) => void }
         <button className="tbtn" onClick={() => setOpen(true)}>
           <span className="box" style={{ borderStyle: 'dashed' }} />
           <span className="tt">
-            <b style={{ color: 'var(--accent)', fontWeight: 700 }}>交代一件事{day !== taipeiToday() ? `（${md(day)}）` : ''}</b>
+            <b style={{ color: 'var(--mom)', fontWeight: 700 }}>交代一件事{day !== taipeiToday() ? `（${md(day)}）` : ''}</b>
           </span>
         </button>
       </div>
