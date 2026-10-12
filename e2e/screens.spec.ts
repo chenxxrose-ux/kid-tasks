@@ -41,6 +41,17 @@ test('每一頁的截圖', async ({ browser }) => {
   await kid.screenshot({ path: `${OUT}/1-kid-today.png`, fullPage: true })
   await mom.getByRole('button', { name: /^今日事/ }).click()
   await mom.screenshot({ path: `${OUT}/2-mom-today.png`, fullPage: true })
+  // 長按拖曳中的樣子
+  const pm = mom.locator('.group', { hasText: '放學後' }).locator('.sortrow')
+  await pm.nth(1).evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  const r = (await pm.nth(1).boundingBox())!
+  await mom.mouse.move(r.x + r.width / 2, r.y + r.height / 2)
+  await mom.mouse.down()
+  await mom.waitForTimeout(500)
+  await mom.mouse.move(r.x + r.width / 2, r.y + r.height * 2.2, { steps: 8 })
+  await mom.screenshot({ path: `${OUT}/2b-mom-drag.png` })
+  await mom.mouse.move(r.x + r.width / 2, r.y + r.height / 2, { steps: 8 })
+  await mom.mouse.up()
   await kid.getByRole('button', { name: /^留言/ }).click()
   await kid.getByRole('textbox', { name: '留言' }).fill('好')
   await kid.getByRole('button', { name: '送出' }).click()

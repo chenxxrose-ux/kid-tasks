@@ -211,6 +211,35 @@ test('媽媽們新增任務，樂樂那邊出現', async () => {
   await expect(kid.getByRole('button', { name: /練琴 20 分鐘/ })).toBeVisible()
 })
 
+test('媽媽們長按拖曳換順序，樂樂那邊跟著變', async () => {
+  await mom.getByRole('button', { name: /^今日事/ }).click()
+  const night = mom.locator('.group', { hasText: '晚上' })
+  const names = () => night.locator('.sortrow .tt b').allTextContents()
+  const before = await names()
+  const first = night.locator('.sortrow').first()
+  const last = night.locator('.sortrow').last()
+  await first.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  const a = (await first.boundingBox())!
+  const b = (await last.boundingBox())!
+  await mom.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+  await mom.mouse.down()
+  await mom.waitForTimeout(500)
+  await mom.mouse.move(a.x + a.width / 2, b.y + b.height - 4, { steps: 12 })
+  await expect(night.locator('.sortrow.lifted')).toHaveCount(1)
+  await mom.mouse.up()
+  const after = [...before.slice(1), before[0]]
+  await expect.poll(names).toEqual(after)
+  await openPart(kid, /晚上/)
+  await expect.poll(() => kid.locator('.parthd:has-text("晚上") ~ .task .tt b').allTextContents()).toEqual(after)
+
+  // 輕輕滑過去是捲動，不會換順序
+  await mom.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
+  await mom.mouse.down()
+  await mom.mouse.move(a.x + a.width / 2, b.y + b.height - 4, { steps: 5 })
+  await mom.mouse.up()
+  await expect.poll(names).toEqual(after)
+})
+
 test('樂樂離線打勾，連上網路後媽媽們才看到', async () => {
   await mom.getByRole('button', { name: /^今日事/ }).click()
   await kidCtx.setOffline(true)

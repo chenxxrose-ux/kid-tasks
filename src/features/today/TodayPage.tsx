@@ -4,6 +4,7 @@ import { dayNote, isOff } from '../../lib/calendar'
 import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from '../../lib/dates'
 import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
 import { TeacherBox } from './Teacher'
+import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
 import { MsgBanner, SyncNotes } from '../../ui/kit'
 
@@ -224,6 +225,18 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
   const week = weekOf(day)
   const visits = visitsOn(day, data)
   const asks = ts.filter((t) => t.slot === 'ask')
+  const firstPart = PARTS.find((q) => ts.some((t) => q.slots.includes(t.slot)))?.id
+  const byId = new Map(data.tasks.map((t) => [t.id, t]))
+  /** 換順序：把這幾項原本的排序號碼，照新的順序重新分配（不影響其他天才有的項目） */
+  const reorder = (ids: string[]) => {
+    const rows = ids.map((id) => byId.get(id)!)
+    const nums = rows.map((t) => t.sort).sort((a, b) => a - b)
+    const distinct = new Set(nums).size === nums.length
+    rows.forEach((t, k) => {
+      const sort = distinct ? nums[k] : nums[0] + k
+      if (t.sort !== sort) run({ t: 'task', task: { ...t, sort }, isNew: false })
+    })
+  }
 
   return (
     <>
@@ -293,13 +306,20 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
         {PARTS.map((p) => {
           const list = ts.filter((t) => p.slots.includes(t.slot))
           if (!list.length) return null
+          // 段考複習是自動加的，固定在最上面；其他長按可以拖曳換順序
+          const auto = list.filter((t) => !byId.has(t.id))
+          const mine = list.filter((t) => byId.has(t.id))
           return (
             <section className="group" key={p.id}>
-              <h2>{partName(p.id, p.name, day, holidays)}</h2>
+              <h2>
+                {partName(p.id, p.name, day, holidays)}
+                {p.id === firstPart ? <span className="sorthint">長按可以拖曳換順序</span> : null}
+              </h2>
               <div className="card">
-                {list.map((t) => (
+                {auto.map((t) => (
                   <Row key={t.id} t={t} at={c.get(t.id)} disabled />
                 ))}
+                <Sortable items={mine} onMove={reorder} render={(t) => <Row t={t} at={c.get(t.id)} disabled />} />
               </div>
             </section>
           )

@@ -154,3 +154,9 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .teach .pill[aria-pressed="true"]{background:var(--board);border-color:var(--board)}
 .teach .btn:not(.ghost){background:var(--board)}
 .due{font-weight:700}.due.late{color:var(--warn)}.due.soon{color:var(--accent)}
+.sortrow{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--card)}
+.sortrow+.sortrow,.task+.sortrow{border-top:1px solid var(--line)}
+.sortrow.shifting{transition:transform .15s ease}
+.sortrow.lifted{z-index:2;box-shadow:0 8px 24px rgba(59,47,39,.22);border-radius:12px;transform-origin:center}
+.sorthint{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px}
+.sortrow .tbtn:disabled{pointer-events:none}
