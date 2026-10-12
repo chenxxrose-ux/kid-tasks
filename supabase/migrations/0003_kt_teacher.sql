@@ -8,8 +8,7 @@ alter table public.kt_asks
 
 grant insert (source, due) on public.kt_asks to authenticated;
 
-drop policy kt_mom_insert on public.kt_asks;
-create policy kt_member_insert on public.kt_asks for insert to authenticated with check (
-  created_by = auth.uid()
-  and (public.kt_role() = 'mom' or (public.kt_role() = 'kid' and source = 'teacher'))
+-- 媽媽們原本的新增規則不變；另外允許樂樂新增「老師說」
+create policy kt_kid_teacher_insert on public.kt_asks for insert to authenticated with check (
+  public.kt_role() = 'kid' and source = 'teacher' and created_by = auth.uid()
 );
