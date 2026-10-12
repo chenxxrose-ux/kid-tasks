@@ -112,10 +112,15 @@ main{gap:14px}
 .toast span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .toast button{border:none;background:transparent;color:inherit;font-weight:700;min-height:44px;padding:0 12px;text-decoration:underline}
 .parthd:disabled{cursor:default}
-.askbox{background:var(--accent-soft);border:2px solid var(--accent);border-radius:18px;padding:12px}
-.askbox h2{margin:0 4px 10px;font-size:18px;font-weight:900;color:var(--accent);display:flex;justify-content:space-between;align-items:baseline}
-.askbox h2 span{font-size:14px;font-weight:700}
-.askbox .tt b{font-size:18px;font-weight:700}
+/* 交代區：白卡片＋左邊色帶，不再框中框。媽媽們橘、老師綠 */
+.askbox,.teach{position:relative;background:var(--card);border-radius:16px;overflow:hidden}
+.askbox::before,.teach::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--accent)}
+.teach::before{background:var(--board)}
+.askbox h2,.teach h2{margin:0;padding:12px 16px 2px 16px;font-size:15px;font-weight:900;color:var(--accent);display:flex;justify-content:space-between;align-items:baseline;letter-spacing:.5px}
+.teach h2{color:var(--board)}
+.askbox h2 span,.teach h2 span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.askbox .card,.teach .card{border-radius:0;background:transparent}
+.askbox .tt b,.teach .tt b{font-size:17px;font-weight:600}
 @media (prefers-reduced-motion:reduce){.bar i,.chev{transition:none}}
 
 html{-webkit-text-size-adjust:100%}
@@ -136,8 +141,8 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .hero .n small{font-size:13px;opacity:.8}
 .hero .t{display:flex;flex-direction:column;gap:2px;min-width:0}
 .hero .t strong{font-size:18px;font-weight:900}
-.hero .t div{font-size:14px;opacity:.9;font-variant-numeric:tabular-nums}
-.hero .t .dim{opacity:.7}
+.hero .t div{font-size:14px;font-variant-numeric:tabular-nums}
+.hero .t .dim{color:#F2DDC8}
 .hero .linkbtn{color:inherit;text-decoration:underline;min-height:0;padding:0}
 .login{max-width:420px;margin:0 auto;padding:calc(48px + env(safe-area-inset-top,0px)) 20px 32px;display:flex;flex-direction:column;gap:20px}
 .login h1{font-size:34px}
@@ -145,11 +150,8 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .foot{font-size:13px;color:var(--muted);line-height:1.6}
 .danger{color:var(--danger)!important}
 .topban:not(:empty){padding:12px 16px 0}
-.teach{background:var(--board-soft);border:2px solid var(--board);border-radius:18px;padding:12px}
-.teach h2{margin:0 4px 10px;font-size:18px;font-weight:900;color:var(--board);display:flex;justify-content:space-between;align-items:baseline}
-.teach h2 span{font-size:14px;font-weight:700}
-.teach .tt b{font-size:18px;font-weight:700}
-.teach .tt .addlink{color:var(--board);font-size:16px}
+.teach .tt .addlink{color:var(--board);font-size:16px;font-weight:700}
+.teach .tt .addlink i{font-style:normal;color:var(--muted);font-weight:500}
 .teach .done .box{background:var(--board);border-color:var(--board)}
 .teach .pill[aria-pressed="true"]{background:var(--board);border-color:var(--board)}
 .teach .btn:not(.ghost){background:var(--board)}
@@ -157,6 +159,9 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .sortrow{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--card)}
 .sortrow+.sortrow,.task+.sortrow{border-top:1px solid var(--line)}
 .sortrow.shifting{transition:transform .15s ease}
-.sortrow.lifted{z-index:2;box-shadow:0 8px 24px rgba(59,47,39,.22);border-radius:12px;transform-origin:center}
+.sortrow.lifted{z-index:2;box-shadow:0 12px 28px rgba(59,47,39,.28);border-radius:12px}
+/* 右邊的「≡」把手：看得出可以拖 */
+.sortrow .tbtn::after{content:'';flex:none;width:18px;height:12px;margin-left:4px;background:linear-gradient(var(--box) 0 2px,transparent 2px 5px,var(--box) 5px 7px,transparent 7px 10px,var(--box) 10px 12px)}
+.sortrow.lifted .tbtn::after{background:linear-gradient(var(--accent) 0 2px,transparent 2px 5px,var(--accent) 5px 7px,transparent 7px 10px,var(--accent) 10px 12px)}
 .sorthint{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px}
 .sortrow .tbtn:disabled{pointer-events:none}

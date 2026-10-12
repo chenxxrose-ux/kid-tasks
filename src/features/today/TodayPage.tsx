@@ -313,7 +313,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
             <section className="group" key={p.id}>
               <h2>
                 {partName(p.id, p.name, day, holidays)}
-                {p.id === firstPart ? <span className="sorthint">長按可以拖曳換順序</span> : null}
+                {p.id === firstPart ? <span className="sorthint">按住任一項可拖曳換順序</span> : null}
               </h2>
               <div className="card">
                 {auto.map((t) => (

@@ -96,7 +96,7 @@ export function Sortable<T extends { id: string }>({
               rows.current[i] = el
             }}
             className={`sortrow ${lifted ? 'lifted' : ''} ${drag?.active && !lifted ? 'shifting' : ''}`}
-            style={y ? { transform: `translateY(${y}px)` } : undefined}
+            style={lifted ? { transform: `translateY(${y}px) scale(1.03)` } : y ? { transform: `translateY(${y}px)` } : undefined}
             onPointerDown={(e) => down(e, i)}
             onPointerMove={move}
             onPointerUp={up}
