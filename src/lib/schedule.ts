@@ -1,4 +1,4 @@
-import { addDays, daysBetween, dayOf, taipei } from './dates'
+import { addDays, daysBetween, dayOf, md, mdw, taipei } from './dates'
 import { ruleDay, type Holidays } from './calendar'
 import type { Exam, Message, Read, Role, Snapshot, Slot } from './types'
 
@@ -27,7 +27,7 @@ export function examSoon(day: string, exams: Exam[]) {
 export function tasksFor(day: string, s: Snapshot, hol: Holidays): DayTask[] {
   const w = ruleDay(day, hol)
   const asks = s.asks
-    .filter((a) => a.day === day && !a.removed_at)
+    .filter((a) => a.day === day && !a.removed_at && (a.source ?? 'mom') === 'mom')
     .sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
     .map((a) => ({ id: `ask:${a.id}`, title: a.title, slot: 'ask' as const }))
   const fixed = s.tasks
@@ -35,6 +35,38 @@ export function tasksFor(day: string, s: Snapshot, hol: Holidays): DayTask[] {
     .sort((a, b) => a.sort - b.sort)
     .map((t) => ({ id: t.id, title: t.title, slot: t.slot }))
   return [...asks, ...(examSoon(day, s.exams) ? [REVIEW] : []), ...fixed]
+}
+
+export const teacherId = (askId: string) => `tch:${askId}`
+export type TeacherItem = { id: string; askId: string; title: string; due: string | null; day: string; created: string; doneAt?: string; doneDay?: string }
+
+/**
+ * 老師說的事：寫上去那天起一直留著，打勾才算完成（哪一天勾都可以）。
+ * 不算進每天的進度，免得前幾天還沒到期的事讓「連續完成」斷掉。
+ * keepDays：做完的再留幾天（媽媽們看得到幾點做完）。
+ */
+export function teacherItems(today: string, s: Snapshot, keepDays = 0): TeacherItem[] {
+  const done = new Map<string, { day: string; at: string }>()
+  for (const c of s.checks) if (c.task_id.startsWith('tch:')) done.set(c.task_id, { day: c.day, at: c.checked_at })
+  const since = addDays(today, -keepDays)
+  return s.asks
+    .filter((a) => a.source === 'teacher' && !a.removed_at && a.day <= today)
+    .map((a) => {
+      const d = done.get(teacherId(a.id))
+      return { id: teacherId(a.id), askId: a.id, title: a.title, due: a.due ?? null, day: a.day, doneAt: d?.at, doneDay: d?.day, created: a.created_at }
+    })
+    .filter((x) => !x.doneDay || x.doneDay >= since)
+    .sort((a, b) => (a.due ?? '9999').localeCompare(b.due ?? '9999') || a.created.localeCompare(b.created))
+}
+
+/** 期限怎麼寫：今天、明天、10/16 週五、已經過了 */
+export function dueText(due: string | null, today: string) {
+  if (!due) return null
+  const n = daysBetween(today, due)
+  if (n < 0) return { text: `${md(due)} 到期，已經過了`, tone: 'late' as const }
+  if (n === 0) return { text: '今天到期', tone: 'late' as const }
+  if (n === 1) return { text: '明天到期', tone: 'soon' as const }
+  return { text: `${mdw(due)}到期`, tone: '' as const }
 }
 
 export function checksOn(day: string, s: Snapshot) {

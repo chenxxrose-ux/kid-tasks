@@ -2,7 +2,9 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useStore, newId } from '../data/store'
 import { dayNote, isOff } from '../../lib/calendar'
 import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from '../../lib/dates'
-import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, visitsOn, type DayTask } from '../../lib/schedule'
+import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
+import { TeacherBox } from './Teacher'
+import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
 import { MsgBanner, SyncNotes } from '../../ui/kit'
 
@@ -108,8 +110,10 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
     setToast(null)
   }
 
+  const teach = teacherItems(day, data)
   const todo = ts.filter((t) => !c.has(t.id))
-  const done = ts.filter((t) => c.has(t.id))
+  // 今天做完的也包含今天勾掉的老師說
+  const done = [...teach.filter((t) => c.has(t.id)).map((t) => ({ id: t.id, title: t.title, slot: 'ask' as const })), ...ts.filter((t) => c.has(t.id))]
   const asks = todo.filter((t) => t.slot === 'ask')
   const fin = ts.length > 0 && todo.length === 0
 
@@ -119,7 +123,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
       <main>
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
-        {fin ? <FinCard day={day} count={ts.length} last={done.map((t) => c.get(t.id)!).sort().pop()!} /> : null}
+        {fin ? <FinCard day={day} count={ts.length} last={ts.map((t) => c.get(t.id)!).sort().pop()!} /> : null}
         {asks.length ? (
           <section className="askbox">
             <h2>
@@ -132,6 +136,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
             </div>
           </section>
         ) : null}
+        <TeacherBox items={teach} onTick={(t) => tick({ id: t.id, title: t.title, slot: 'ask' })} />
         <ExamCard day={day} />
         {!fin ? (
           <div className="card">
@@ -220,6 +225,18 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
   const week = weekOf(day)
   const visits = visitsOn(day, data)
   const asks = ts.filter((t) => t.slot === 'ask')
+  const firstPart = PARTS.find((q) => ts.some((t) => q.slots.includes(t.slot)))?.id
+  const byId = new Map(data.tasks.map((t) => [t.id, t]))
+  /** 換順序：把這幾項原本的排序號碼，照新的順序重新分配（不影響其他天才有的項目） */
+  const reorder = (ids: string[]) => {
+    const rows = ids.map((id) => byId.get(id)!)
+    const nums = rows.map((t) => t.sort).sort((a, b) => a - b)
+    const distinct = new Set(nums).size === nums.length
+    rows.forEach((t, k) => {
+      const sort = distinct ? nums[k] : nums[0] + k
+      if (t.sort !== sort) run({ t: 'task', task: { ...t, sort }, isNew: false })
+    })
+  }
 
   return (
     <>
@@ -284,17 +301,25 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
             </div>
           </section>
         ) : null}
+        {day === today ? <TeacherBox items={teacherItems(today, data, 7)} /> : null}
         <ExamCard day={day} onFill={goPlan} />
         {PARTS.map((p) => {
           const list = ts.filter((t) => p.slots.includes(t.slot))
           if (!list.length) return null
+          // 段考複習是自動加的，固定在最上面；其他長按可以拖曳換順序
+          const auto = list.filter((t) => !byId.has(t.id))
+          const mine = list.filter((t) => byId.has(t.id))
           return (
             <section className="group" key={p.id}>
-              <h2>{partName(p.id, p.name, day, holidays)}</h2>
+              <h2>
+                {partName(p.id, p.name, day, holidays)}
+                {p.id === firstPart ? <span className="sorthint">長按可以拖曳換順序</span> : null}
+              </h2>
               <div className="card">
-                {list.map((t) => (
+                {auto.map((t) => (
                   <Row key={t.id} t={t} at={c.get(t.id)} disabled />
                 ))}
+                <Sortable items={mine} onMove={reorder} render={(t) => <Row t={t} at={c.get(t.id)} disabled />} />
               </div>
             </section>
           )

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { apply, applyAll } from './apply'
 import { BUNDLED_HOLIDAYS as H, dayNote, parseHolidayJson, ruleDay } from './calendar'
 import { addDays, taipei, weekOf } from './dates'
-import { balance, examSoon, nextExam, progress, shouldLogVisit, streak, tasksFor, unread } from './schedule'
+import { balance, dueText, examSoon, nextExam, progress, shouldLogVisit, streak, tasksFor, teacherItems, unread } from './schedule'
 import { emptySnapshot, type Snapshot } from './types'
 
 const base = (): Snapshot => ({
@@ -38,6 +38,31 @@ describe('日期與假日', () => {
       '2028-01-01': '開國紀念日',
     })
     expect(parseHolidayJson('壞掉')).toEqual({})
+  })
+})
+
+describe('老師說', () => {
+  const t = (id: string, day: string, due: string | null) =>
+    ({ t: 'ask', id, day, title: id, at: `${day}T01:00:00.000Z`, source: 'teacher', due }) as const
+  it('做完前一直留著，不算進每天的進度；期限近的排前面', () => {
+    const s = applyAll(base(), [t('直笛', '2026-10-12', null), t('習作', '2026-10-12', '2026-10-16'), t('簽名', '2026-10-13', '2026-10-14')])
+    expect(tasksFor('2026-10-12', s, H).map((x) => x.id)).toEqual(['desk', 'lunchbox'])
+    expect(teacherItems('2026-10-12', s).map((x) => x.title)).toEqual(['習作', '直笛']) // 明天寫的還不會出現
+    expect(teacherItems('2026-10-14', s).map((x) => x.title)).toEqual(['簽名', '習作', '直笛'])
+  })
+  it('打勾後樂樂那邊消失；媽媽們再看 7 天', () => {
+    const s = applyAll(base(), [t('習作', '2026-10-12', '2026-10-16'), { t: 'check', day: '2026-10-13', task_id: 'tch:習作', checked_at: '2026-10-13T11:00:00.000Z' }])
+    expect(teacherItems('2026-10-13', s)[0].doneDay).toBe('2026-10-13')
+    expect(teacherItems('2026-10-14', s)).toEqual([])
+    expect(teacherItems('2026-10-20', s, 7)).toHaveLength(1)
+    expect(teacherItems('2026-10-21', s, 7)).toHaveLength(0)
+  })
+  it('期限的寫法', () => {
+    expect(dueText(null, '2026-10-12')).toBeNull()
+    expect(dueText('2026-10-12', '2026-10-12')?.text).toBe('今天到期')
+    expect(dueText('2026-10-13', '2026-10-12')?.text).toBe('明天到期')
+    expect(dueText('2026-10-16', '2026-10-12')?.text).toBe('10/16（週五）到期')
+    expect(dueText('2026-10-11', '2026-10-12')).toEqual({ text: '10/11 到期，已經過了', tone: 'late' })
   })
 })
 

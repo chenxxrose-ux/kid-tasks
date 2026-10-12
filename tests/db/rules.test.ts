@@ -24,6 +24,15 @@ describe('任務與交代', () => {
     const t = await as<{ title: string }>(db, USERS.kid, `select title from public.kt_tasks where id = 'homework'`)
     expect(t[0].title).toBe('作業完成') // 樂樂改不到（RLS 讓更新影響 0 列）
   })
+  it('老師說：樂樂和媽媽們都能記，拿掉只有媽媽們能', async () => {
+    const d = await today()
+    await as(db, USERS.kid, `insert into public.kt_asks (id, day, title, source, due) values ('00000000-0000-0000-0000-0000000000a1', $1, '帶直笛', 'teacher', $1::date + 1)`, [d])
+    await as(db, USERS.mom, `insert into public.kt_asks (day, title, source) values ($1, '繳班費', 'teacher')`, [d])
+    await as(db, USERS.kid, `update public.kt_asks set removed_at = now()`)
+    const r = await as<{ n: number }>(db, USERS.kid, `select count(*)::int as n from public.kt_asks where source = 'teacher' and removed_at is null`)
+    expect(r[0].n).toBe(2)
+    await expect(as(db, USERS.kid, `insert into public.kt_asks (day, title, source) values ($1, '假裝老師', 'mom')`, [d])).rejects.toThrow()
+  })
   it('不是成員什麼都看不到', async () => {
     const t = await as(db, USERS.stranger, 'select * from public.kt_tasks')
     expect(t).toHaveLength(0)
