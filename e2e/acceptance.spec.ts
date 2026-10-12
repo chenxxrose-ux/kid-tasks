@@ -95,7 +95,7 @@ test('媽媽們交代的事，樂樂馬上看到；樂樂打勾，媽媽們看�
 
 test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們看到時間', async () => {
   const kbox = kid.locator('.teach')
-  await kbox.getByRole('button', { name: '記下老師說的事' }).click()
+  await kbox.getByRole('button', { name: /記下老師/ }).click()
   await kbox.getByRole('button', { name: '記下來' }).click()
   await expect(kbox.getByRole('alert')).toHaveText('請寫老師交代什麼')
   await kbox.getByLabel('老師交代什麼').fill('帶直笛')
@@ -114,7 +114,7 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
   await expect(mbox.locator('h2')).toContainText('0 / 1 完成')
 
   // 媽媽們也能記、能拿掉
-  await mbox.getByRole('button', { name: '記下老師說的事' }).click()
+  await mbox.getByRole('button', { name: /記下老師/ }).click()
   await mbox.getByLabel('老師交代什麼').fill('繳班費')
   await mbox.getByRole('button', { name: '老師沒說' }).click()
   await mbox.getByRole('button', { name: '記下來' }).click()

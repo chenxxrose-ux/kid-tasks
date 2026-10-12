@@ -13,13 +13,18 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
   const today = taipeiToday()
   const left = items.filter((t) => !t.doneAt)
   const kid = role === 'kid'
+  const shown = kid ? left : items
   return (
     <section className="teach" aria-label="老師說">
-      <h2>
-        老師說<span>{kid ? (left.length ? `${left.length} 件` : '') : items.length ? `${items.length - left.length} / ${items.length} 完成` : ''}</span>
-      </h2>
+      {/* 沒有事的時候只留一行，不佔第一頁 */}
+      {shown.length ? (
+        <h2>
+          老師說
+          <span>{kid ? `${left.length} 件` : `${items.length - left.length} / ${items.length} 完成`}</span>
+        </h2>
+      ) : null}
       <div className="card">
-        {(kid ? left : items).map((t) => {
+        {shown.map((t) => {
           const due = dueText(t.due, today)
           const hint = due ? <small className={`due ${due.tone}`}>{due.text}</small> : null
           return kid ? (
@@ -38,7 +43,7 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
             <MomRow key={t.id} t={t} hint={hint} />
           )
         })}
-        <TeacherForm />
+        <TeacherForm compact={!shown.length} />
       </div>
     </section>
   )
@@ -75,7 +80,7 @@ function MomRow({ t, hint }: { t: TeacherItem; hint: React.ReactNode }) {
 
 type DueChoice = 'none' | 'tomorrow' | 'pick'
 
-function TeacherForm() {
+function TeacherForm({ compact }: { compact: boolean }) {
   const { run } = useStore()
   const today = taipeiToday()
   const [open, setOpen] = useState(false)
@@ -89,7 +94,15 @@ function TeacherForm() {
         <button className="tbtn" onClick={() => setOpen(true)}>
           <span className="box" style={{ borderStyle: 'dashed' }} />
           <span className="tt">
-            <b className="addlink">記下老師說的事</b>
+            <b className="addlink">
+              {compact ? (
+                <>
+                  老師說<i>：記下老師交代的事</i>
+                </>
+              ) : (
+                '記下老師說的事'
+              )}
+            </b>
           </span>
         </button>
       </div>
@@ -97,7 +110,7 @@ function TeacherForm() {
   return (
     <form
       className="pad"
-      style={{ borderTop: '1px solid var(--line)' }}
+      style={compact ? undefined : { borderTop: '1px solid var(--line)' }}
       onSubmit={(e) => {
         e.preventDefault()
         const title = v.trim()
@@ -105,7 +118,15 @@ function TeacherForm() {
         if (title.length > 40) return setErr('請寫短一點（40 字以內）')
         if (when === 'pick' && (!picked || picked < today)) return setErr('請選今天以後的日期')
         const due = when === 'tomorrow' ? addDays(today, 1) : when === 'pick' ? picked : null
-        run({ t: 'ask', id: newId(), day: today, title, at: new Date().toISOString(), source: 'teacher', due })
+        run({
+          t: 'ask',
+          id: newId(),
+          day: today,
+          title,
+          at: new Date().toISOString(),
+          source: 'teacher',
+          due,
+        })
         setV('')
         setPicked('')
         setWhen('tomorrow')
@@ -115,7 +136,15 @@ function TeacherForm() {
     >
       <div className="field">
         <label htmlFor="teachtitle">老師交代什麼</label>
-        <input className="input" id="teachtitle" placeholder="例如：帶直笛、數學習作第 3 頁" autoComplete="off" autoFocus value={v} onChange={(e) => setV(e.target.value)} />
+        <input
+          className="input"
+          id="teachtitle"
+          placeholder="例如：帶直笛、數學習作第 3 頁"
+          autoComplete="off"
+          autoFocus
+          value={v}
+          onChange={(e) => setV(e.target.value)}
+        />
       </div>
       <div className="field">
         <span className="flabel">什麼時候要好</span>
