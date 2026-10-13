@@ -33,6 +33,15 @@ describe('任務與交代', () => {
     expect(r[0].n).toBe(2)
     await expect(as(db, USERS.kid, `insert into public.kt_asks (day, title, source) values ($1, '假裝老師', 'mom')`, [d])).rejects.toThrow()
   })
+  it('媽媽們能修改交代的文字和期限，樂樂改不到', async () => {
+    const d = await today()
+    await as(db, USERS.mom, `insert into public.kt_asks (id, day, title, source) values ('00000000-0000-0000-0000-0000000000b1', $1, '帶直笛', 'teacher')`, [d])
+    await as(db, USERS.kid, `update public.kt_asks set title = '不用帶'`)
+    await as(db, USERS.mom, `update public.kt_asks set title = '帶直笛和譜', due = $1::date + 2`, [d])
+    const r = await as<{ title: string }>(db, USERS.kid, `select title from public.kt_asks where id = '00000000-0000-0000-0000-0000000000b1'`)
+    expect(r[0].title).toBe('帶直笛和譜')
+    await expect(as(db, USERS.mom, `update public.kt_asks set source = 'mom'`)).rejects.toThrow()
+  })
   it('不是成員什麼都看不到', async () => {
     const t = await as(db, USERS.stranger, 'select * from public.kt_tasks')
     expect(t).toHaveLength(0)

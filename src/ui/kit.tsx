@@ -66,3 +66,12 @@ export function SyncNotes() {
 
 export const money = (n: number) => `NT$ ${n.toLocaleString('zh-TW')}`
 export { hmOf }
+
+/** 拿掉：按一次問「確定拿掉」，再按一次才拿掉 */
+export function RemoveLink({ confirm, onAsk, onRemove }: { confirm: boolean; onAsk: () => void; onRemove: () => void }) {
+  return (
+    <button type="button" className="linkbtn danger" style={{ alignSelf: 'flex-start' }} onClick={confirm ? onRemove : onAsk}>
+      {confirm ? '確定拿掉' : '拿掉這件'}
+    </button>
+  )
+}

@@ -15,6 +15,8 @@ export function apply(s: Snapshot, op: Op): Snapshot {
         : { ...s, asks: [...s.asks, { id: op.id, day: op.day, title: op.title, created_at: op.at, removed_at: null, source: op.source ?? 'mom', due: op.due ?? null }] }
     case 'unask':
       return { ...s, asks: s.asks.map((a) => (a.id === op.id ? { ...a, removed_at: op.at } : a)) }
+    case 'ask-edit':
+      return { ...s, asks: s.asks.map((a) => (a.id === op.id ? { ...a, title: op.title, ...(op.due !== undefined ? { due: op.due } : {}) } : a)) }
     case 'msg':
       return s.messages.some((m) => m.id === op.id)
         ? s

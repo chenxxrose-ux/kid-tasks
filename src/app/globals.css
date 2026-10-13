@@ -166,3 +166,8 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .sorthint{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px}
 .sortrow .tbtn:disabled{pointer-events:none}
 .askbox .done .box{background:var(--mom);border-color:var(--mom)}
+.linkbtn.edit{color:var(--muted);font-weight:500;font-size:15px}
+/* 修改中的那一項：淡底色，看得出正在改哪一件 */
+.editform{background:var(--bubble)}
+.task+.editform,.editform+.task{border-top:1px solid var(--line)}
+.btn.mom{background:var(--mom)}

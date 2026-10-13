@@ -57,6 +57,12 @@ describe('老師說', () => {
     expect(teacherItems('2026-10-20', s, 7)).toHaveLength(1)
     expect(teacherItems('2026-10-21', s, 7)).toHaveLength(0)
   })
+  it('修改文字和期限', () => {
+    const s = applyAll(base(), [t('習作', '2026-10-12', '2026-10-16'), { t: 'ask-edit', id: '習作', title: '習作第 4 頁', due: null }])
+    expect(teacherItems('2026-10-12', s)[0]).toMatchObject({ title: '習作第 4 頁', due: null })
+    const m = applyAll(s, [{ t: 'ask-edit', id: '習作', title: '只改文字' }])
+    expect(m.asks[0]).toMatchObject({ title: '只改文字', due: null })
+  })
   it('期限的寫法', () => {
     expect(dueText(null, '2026-10-12')).toBeNull()
     expect(dueText('2026-10-12', '2026-10-12')?.text).toBe('今天到期')

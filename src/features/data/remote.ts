@@ -53,6 +53,11 @@ export async function send(op: Op): Promise<Err> {
         return supabase.from('kt_asks').upsert({ id: op.id, day: op.day, title: op.title, source: op.source ?? 'mom', due: op.due ?? null }, { onConflict: 'id', ignoreDuplicates: true })
       case 'unask':
         return supabase.from('kt_asks').update({ removed_at: op.at }).eq('id', op.id)
+      case 'ask-edit':
+        return supabase
+          .from('kt_asks')
+          .update(op.due !== undefined ? { title: op.title, due: op.due } : { title: op.title })
+          .eq('id', op.id)
       case 'msg':
         return supabase.from('kt_messages').upsert({ id: op.id, body: op.body }, { onConflict: 'id', ignoreDuplicates: true })
       case 'read':

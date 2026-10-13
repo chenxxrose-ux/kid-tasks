@@ -91,6 +91,12 @@ test('媽媽們交代的事，樂樂馬上看到；樂樂打勾，媽媽們看�
   await kid.locator('.toast').getByRole('button', { name: '復原' }).click()
   await expect(kid.locator('.askbox')).toContainText('把報紙拿去回收')
   await expect(mom.locator('.askbox h2')).toContainText('0 / 1 完成')
+
+  // 媽媽們可以修改還沒做的交代
+  await mom.getByRole('button', { name: '修改「把報紙拿去回收」' }).click()
+  await mom.getByLabel('修改交代的事').fill('把報紙和紙箱拿去回收')
+  await mom.getByRole('button', { name: '儲存' }).click()
+  await expect(kid.locator('.askbox')).toContainText('把報紙和紙箱拿去回收')
 })
 
 test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們看到時間', async () => {
@@ -119,7 +125,15 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
   await mbox.getByRole('button', { name: '老師沒說' }).click()
   await mbox.getByRole('button', { name: '記下來' }).click()
   await expect(kbox).toContainText('繳班費')
-  await mbox.getByRole('button', { name: '拿掉「繳班費」' }).click()
+  // 修改：改文字和期限，樂樂那邊跟著變
+  await mbox.getByRole('button', { name: '修改「繳班費」' }).click()
+  await mbox.getByLabel('老師交代什麼').fill('繳班費 200 元')
+  await mbox.getByRole('button', { name: '明天' }).click()
+  await mbox.getByRole('button', { name: '儲存' }).click()
+  await expect(kbox).toContainText('繳班費 200 元')
+  await expect(kbox.getByRole('button', { name: /繳班費 200 元/ })).toContainText('明天到期')
+  await mbox.getByRole('button', { name: '修改「繳班費 200 元」' }).click()
+  await mbox.getByRole('button', { name: '拿掉這件' }).click()
   await mbox.getByRole('button', { name: '確定拿掉' }).click()
   await expect(kbox).not.toContainText('繳班費')
 })

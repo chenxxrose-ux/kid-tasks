@@ -3,6 +3,7 @@ import { newId, useStore } from '../data/store'
 import { addDays, hmOf, md, taipeiToday } from '../../lib/dates'
 import { dueText, type TeacherItem } from '../../lib/schedule'
 import { Check } from '../../ui/icons'
+import { RemoveLink } from '../../ui/kit'
 
 /**
  * 老師說：老師交代的事放在第一頁，做完前一直留著。
@@ -50,9 +51,9 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
 }
 
 function MomRow({ t, hint }: { t: TeacherItem; hint: React.ReactNode }) {
-  const { run } = useStore()
-  const [confirm, setConfirm] = useState(false)
+  const [editing, setEditing] = useState(false)
   const today = taipeiToday()
+  if (editing) return <TeacherForm compact={false} item={t} onClose={() => setEditing(false)} />
   return (
     <div className={`task ${t.doneAt ? 'done' : ''}`}>
       <div className="tbtn" style={{ cursor: 'default' }}>
@@ -64,13 +65,9 @@ function MomRow({ t, hint }: { t: TeacherItem; hint: React.ReactNode }) {
           {t.doneAt ? null : hint}
         </span>
         {t.doneAt ? <span className="time">{t.doneDay === today ? hmOf(t.doneAt) : `${md(t.doneDay!)} ${hmOf(t.doneAt)}`}</span> : null}
-        {t.doneAt ? null : confirm ? (
-          <button className="linkbtn danger" onClick={() => run({ t: 'unask', id: t.askId, at: new Date().toISOString() })}>
-            確定拿掉
-          </button>
-        ) : (
-          <button className="linkbtn" style={{ color: 'var(--muted)', fontWeight: 500 }} onClick={() => setConfirm(true)} aria-label={`拿掉「${t.title}」`}>
-            拿掉
+        {t.doneAt ? null : (
+          <button className="linkbtn edit" onClick={() => setEditing(true)} aria-label={`修改「${t.title}」`}>
+            修改
           </button>
         )}
       </div>
@@ -80,14 +77,18 @@ function MomRow({ t, hint }: { t: TeacherItem; hint: React.ReactNode }) {
 
 type DueChoice = 'none' | 'tomorrow' | 'pick'
 
-function TeacherForm({ compact }: { compact: boolean }) {
+/** 記下或修改老師說的事。item 有值就是修改（只有媽媽們會看到「修改」） */
+function TeacherForm({ compact, item, onClose }: { compact: boolean; item?: TeacherItem; onClose?: () => void }) {
   const { run } = useStore()
   const today = taipeiToday()
-  const [open, setOpen] = useState(false)
-  const [v, setV] = useState('')
-  const [when, setWhen] = useState<DueChoice>('tomorrow')
-  const [picked, setPicked] = useState('')
+  const [open, setOpenState] = useState(Boolean(item))
+  const [v, setV] = useState(item?.title ?? '')
+  const [when, setWhen] = useState<DueChoice>(item ? (item.due ? 'pick' : 'none') : 'tomorrow')
+  const [picked, setPicked] = useState(item?.due ?? '')
   const [err, setErr] = useState('')
+  const [confirm, setConfirm] = useState(false)
+  const tid = item ? `teach-${item.askId}` : 'teachtitle'
+  const setOpen = (o: boolean) => (item && !o ? onClose?.() : setOpenState(o))
   if (!open)
     return (
       <div className="task">
@@ -109,15 +110,19 @@ function TeacherForm({ compact }: { compact: boolean }) {
     )
   return (
     <form
-      className="pad"
-      style={compact ? undefined : { borderTop: '1px solid var(--line)' }}
+      className={`pad ${item ? 'editform' : ''}`}
+      style={compact || item ? undefined : { borderTop: '1px solid var(--line)' }}
       onSubmit={(e) => {
         e.preventDefault()
         const title = v.trim()
         if (!title) return setErr('請寫老師交代什麼')
         if (title.length > 40) return setErr('請寫短一點（40 字以內）')
-        if (when === 'pick' && (!picked || picked < today)) return setErr('請選今天以後的日期')
+        if (when === 'pick' && (!picked || (picked < today && picked !== item?.due))) return setErr('請選今天以後的日期')
         const due = when === 'tomorrow' ? addDays(today, 1) : when === 'pick' ? picked : null
+        if (item) {
+          if (title !== item.title || due !== item.due) run({ t: 'ask-edit', id: item.askId, title, due })
+          return setOpen(false)
+        }
         run({
           t: 'ask',
           id: newId(),
@@ -135,10 +140,10 @@ function TeacherForm({ compact }: { compact: boolean }) {
       }}
     >
       <div className="field">
-        <label htmlFor="teachtitle">老師交代什麼</label>
+        <label htmlFor={tid}>老師交代什麼</label>
         <input
           className="input"
-          id="teachtitle"
+          id={tid}
           placeholder="例如：帶直笛、數學習作第 3 頁"
           autoComplete="off"
           autoFocus
@@ -172,8 +177,11 @@ function TeacherForm({ compact }: { compact: boolean }) {
         <button type="button" className="btn ghost" onClick={() => setOpen(false)}>
           取消
         </button>
-        <button className="btn">記下來</button>
+        <button className="btn">{item ? '儲存' : '記下來'}</button>
       </div>
+      {item ? (
+        <RemoveLink confirm={confirm} onAsk={() => setConfirm(true)} onRemove={() => run({ t: 'unask', id: item.askId, at: new Date().toISOString() })} />
+      ) : null}
     </form>
   )
 }

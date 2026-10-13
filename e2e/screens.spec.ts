@@ -42,6 +42,9 @@ test('每一頁的截圖', async ({ browser }) => {
   await kid.screenshot({ path: `${OUT}/1-kid-today.png`, fullPage: true })
   await mom.getByRole('button', { name: /^今日事/ }).click()
   await mom.screenshot({ path: `${OUT}/2-mom-today.png`, fullPage: true })
+  await mom.getByRole('button', { name: /^修改「數學習作/ }).click()
+  await mom.screenshot({ path: `${OUT}/2a-mom-edit.png` })
+  await mom.locator('.teach').getByRole('button', { name: '取消' }).click()
   // 長按拖曳中的樣子
   const pm = mom.locator('.group', { hasText: '放學後' }).locator('.sortrow')
   await pm.nth(1).evaluate((el) => el.scrollIntoView({ block: 'center' }))
