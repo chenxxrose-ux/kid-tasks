@@ -16,9 +16,10 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     supabase.from('kt_bank').select('id,kind,amount,memo,status,created_at,decided_at').order('created_at'),
     supabase.from('kt_exams').select('id,day,title,subjects').gte('day', addDays(since, -365)),
     supabase.from('kt_visits').select('id,at').gte('at', `${since}T00:00:00+08:00`),
+    supabase.from('kt_needs').select('id,title,due,created_at,done_at,removed_at').gte('created_at', `${since}T00:00:00+08:00`),
   ])
   for (const x of r) if (x.error) throw x.error
-  const [tasks, asks, checks, messages, reads, bank, exams, visits] = r.map((x) => x.data ?? []) as never[][]
+  const [tasks, asks, checks, messages, reads, bank, exams, visits, needs] = r.map((x) => x.data ?? []) as never[][]
   return {
     tasks,
     asks: (asks as Snapshot['asks']).map((a) => ({ ...a, created_at: iso(a.created_at)!, removed_at: iso(a.removed_at) })),
@@ -28,6 +29,7 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     bank: (bank as BankRow[]).map((b) => ({ ...b, amount: Number(b.amount), created_at: iso(b.created_at)!, decided_at: iso(b.decided_at) })),
     exams,
     visits: (visits as Snapshot['visits']).map((v) => ({ ...v, at: iso(v.at)! })),
+    needs: (needs as Snapshot['needs']).map((n) => ({ ...n, created_at: iso(n.created_at)!, done_at: iso(n.done_at), removed_at: iso(n.removed_at) })),
   }
 }
 
@@ -82,6 +84,12 @@ export async function send(op: Op): Promise<Err> {
           ? supabase.from('kt_tasks').upsert({ id, title, slot, days, active, sort }, { onConflict: 'id', ignoreDuplicates: true })
           : supabase.from('kt_tasks').update({ title, slot, days, active, sort, updated_at: new Date().toISOString() }).eq('id', id)
       }
+      case 'need':
+        return supabase.from('kt_needs').upsert({ id: op.id, title: op.title, due: op.due }, { onConflict: 'id', ignoreDuplicates: true })
+      case 'need-done':
+        return supabase.from('kt_needs').update({ done_at: op.at }).eq('id', op.id)
+      case 'need-del':
+        return supabase.from('kt_needs').update({ removed_at: op.at }).eq('id', op.id)
       case 'visit':
         return supabase.from('kt_visits').upsert({ id: op.id, at: op.at }, { onConflict: 'id', ignoreDuplicates: true })
     }

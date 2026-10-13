@@ -48,6 +48,21 @@ describe('任務與交代', () => {
   })
 })
 
+describe('我需要', () => {
+  it('樂樂寫、能拿掉自己的；只有媽媽們能標準備好了', async () => {
+    await as(db, USERS.kid, `insert into public.kt_needs (id, title) values ('00000000-0000-0000-0000-0000000000c1', '色紙')`)
+    await expect(as(db, USERS.mom, `insert into public.kt_needs (title) values ('媽媽不能寫')`)).rejects.toThrow()
+    await expect(as(db, USERS.kid, `update public.kt_needs set done_at = now()`)).rejects.toThrow()
+    await as(db, USERS.mom, `update public.kt_needs set done_at = now()`)
+    const r = await as<{ done: boolean }>(db, USERS.kid, `select done_at is not null as done from public.kt_needs`)
+    expect(r[0].done).toBe(true)
+    await as(db, USERS.kid, `update public.kt_needs set removed_at = now()`)
+    const s = await as<{ n: number }>(db, USERS.mom, `select count(*)::int as n from public.kt_needs where removed_at is not null`)
+    expect(s[0].n).toBe(1)
+    await expect(as(db, USERS.kid, `update public.kt_needs set title = 'x'`)).rejects.toThrow()
+  })
+})
+
 describe('打勾', () => {
   it('樂樂可以勾今天、取消今天；媽媽們不能幫她勾', async () => {
     const d = await today()

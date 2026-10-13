@@ -75,3 +75,26 @@ export function RemoveLink({ confirm, onAsk, onRemove }: { confirm: boolean; onA
     </button>
   )
 }
+
+/** 標題列右邊的「＋」：清單有東西時，新增按鈕放這裡，不多佔一行 */
+export function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button className="hadd" onClick={onClick} aria-label={label}>
+      ＋ 新增
+    </button>
+  )
+}
+
+/** 清單空的時候只留這一行 */
+export function AddRow({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <div className="task">
+      <button className="tbtn" onClick={onClick} aria-label={label}>
+        <span className="box" style={{ borderStyle: 'dashed' }} />
+        <span className="tt">
+          <b className="addlink">{children}</b>
+        </span>
+      </button>
+    </div>
+  )
+}

@@ -4,9 +4,10 @@ import { dayNote, isOff } from '../../lib/calendar'
 import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from '../../lib/dates'
 import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
 import { TeacherBox } from './Teacher'
+import { KidNeeds, MomNeeds } from './Needs'
 import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
-import { MsgBanner, RemoveLink, SyncNotes } from '../../ui/kit'
+import { AddButton, AddRow, MsgBanner, RemoveLink, SyncNotes } from '../../ui/kit'
 
 export function TodayPage({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: string) => void }) {
   const { role } = useStore()
@@ -137,6 +138,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
           </section>
         ) : null}
         <TeacherBox items={teach} onTick={(t) => tick({ id: t.id, title: t.title, slot: 'ask' })} />
+        <KidNeeds />
         <ExamCard day={day} />
         {!fin ? (
           <div className="card">
@@ -225,6 +227,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
   const week = weekOf(day)
   const visits = visitsOn(day, data)
   const asks = ts.filter((t) => t.slot === 'ask')
+  const [adding, setAdding] = useState(false)
   const firstPart = PARTS.find((q) => ts.some((t) => q.slots.includes(t.slot)))?.id
   const byId = new Map(data.tasks.map((t) => [t.id, t]))
   /** 換順序：把這幾項原本的排序號碼，照新的順序重新分配（不影響其他天才有的項目） */
@@ -288,16 +291,34 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
       <main>
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
+        {day === today ? <MomNeeds /> : null}
         {asks.length || day >= today ? (
           <section className="askbox">
-            <h2>
-              媽媽們交代的<span>{asks.length ? `${asks.filter((t) => c.has(t.id)).length} / ${asks.length} 完成` : ''}</span>
-            </h2>
+            {asks.length ? (
+              <h2>
+                媽媽們交代的
+                <span>
+                  {`${asks.filter((t) => c.has(t.id)).length} / ${asks.length} 完成`}
+                  {adding || day < today ? null : <AddButton label="交代一件事" onClick={() => setAdding(true)} />}
+                </span>
+              </h2>
+            ) : null}
             <div className="card">
               {asks.map((t) => (
                 <AskRow key={t.id} t={t} at={c.get(t.id)} canEdit={day >= today && !c.has(t.id)} />
               ))}
-              {day >= today ? <AskForm day={day} onAdd={(title) => run({ t: 'ask', id: newId(), day, title, at: new Date().toISOString() })} /> : null}
+              {adding ? (
+                <AskForm
+                  compact={!asks.length}
+                  onClose={() => setAdding(false)}
+                  onAdd={(title) => run({ t: 'ask', id: newId(), day, title, at: new Date().toISOString() })}
+                />
+              ) : asks.length ? null : (
+                <AddRow label="交代一件事" onClick={() => setAdding(true)}>
+                  <span style={{ color: 'var(--mom)' }}>媽媽們交代的</span>
+                  <i>：交代一件事{day !== today ? `（${md(day)}）` : ''}</i>
+                </AddRow>
+              )}
             </div>
           </section>
         ) : null}
@@ -390,25 +411,14 @@ function AskEdit({ id, title, onClose }: { id: string; title: string; onClose: (
   )
 }
 
-function AskForm({ day, onAdd }: { day: string; onAdd: (title: string) => void }) {
-  const [open, setOpen] = useState(false)
+function AskForm({ compact, onAdd, onClose }: { compact: boolean; onAdd: (title: string) => void; onClose: () => void }) {
   const [v, setV] = useState('')
   const [err, setErr] = useState('')
-  if (!open)
-    return (
-      <div className="task">
-        <button className="tbtn" onClick={() => setOpen(true)}>
-          <span className="box" style={{ borderStyle: 'dashed' }} />
-          <span className="tt">
-            <b style={{ color: 'var(--mom)', fontWeight: 700 }}>交代一件事{day !== taipeiToday() ? `（${md(day)}）` : ''}</b>
-          </span>
-        </button>
-      </div>
-    )
+  const setOpen = (o: boolean) => (o ? undefined : onClose())
   return (
     <form
       className="pad"
-      style={{ borderTop: '1px solid var(--line)' }}
+      style={compact ? undefined : { borderTop: '1px solid var(--line)' }}
       onSubmit={(e) => {
         e.preventDefault()
         const title = v.trim()

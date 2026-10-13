@@ -128,7 +128,7 @@ function parseQuery(url) {
   return { select, where: where.length ? ` where ${where.join(' and ')}` : '', params, order, limit }
 }
 
-const TABLES = new Set(['kt_members', 'kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits'])
+const TABLES = new Set(['kt_members', 'kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs'])
 const RPCS = {
   kt_decide: ['p_id', 'p_approve'],
   kt_cancel: ['p_id'],

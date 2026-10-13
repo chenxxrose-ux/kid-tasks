@@ -1,4 +1,4 @@
-import { addDays, daysBetween, dayOf, md, mdw, taipei } from './dates'
+import { WK, addDays, daysBetween, dayOf, md, mdw, taipei, weekday } from './dates'
 import { ruleDay, type Holidays } from './calendar'
 import type { Exam, Message, Read, Role, Snapshot, Slot } from './types'
 
@@ -63,10 +63,10 @@ export function teacherItems(today: string, s: Snapshot, keepDays = 0): TeacherI
 export function dueText(due: string | null, today: string) {
   if (!due) return null
   const n = daysBetween(today, due)
-  if (n < 0) return { text: `${md(due)} 到期，已經過了`, tone: 'late' as const }
-  if (n === 0) return { text: '今天到期', tone: 'late' as const }
-  if (n === 1) return { text: '明天到期', tone: 'soon' as const }
-  return { text: `${mdw(due)}到期`, tone: '' as const }
+  if (n < 0) return { text: `${md(due)} 到期，已經過了`, short: `過期 ${md(due)}`, tone: 'late' as const }
+  if (n === 0) return { text: '今天到期', short: '今天', tone: 'late' as const }
+  if (n === 1) return { text: '明天到期', short: '明天', tone: 'soon' as const }
+  return { text: `${mdw(due)}到期`, short: `${md(due)} 週${WK[weekday(due)]}`, tone: '' as const }
 }
 
 export function checksOn(day: string, s: Snapshot) {
@@ -120,4 +120,17 @@ export function visitsOn(day: string, s: Snapshot) {
 export function shouldLogVisit(s: Snapshot, now: Date) {
   const last = s.visits.reduce((a, v) => (v.at > a ? v.at : a), '')
   return !last || now.getTime() - Date.parse(last) >= 5 * 60_000
+}
+
+/**
+ * 我需要：還沒準備好的一直留著；準備好的留到隔天（讓樂樂看到「準備好了」）。
+ * 沒準備好的照期限排，期限近的在前面。
+ */
+export function needsFor(today: string, s: Snapshot) {
+  return (s.needs ?? [])
+    .filter((n) => !n.removed_at && (!n.done_at || dayOf(n.done_at) >= addDays(today, -1)))
+    .sort(
+      (a, b) =>
+        Number(Boolean(a.done_at)) - Number(Boolean(b.done_at)) || (a.due ?? '9999').localeCompare(b.due ?? '9999') || a.created_at.localeCompare(b.created_at),
+    )
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { apply, applyAll } from './apply'
 import { BUNDLED_HOLIDAYS as H, dayNote, parseHolidayJson, ruleDay } from './calendar'
 import { addDays, taipei, weekOf } from './dates'
-import { balance, dueText, examSoon, nextExam, progress, shouldLogVisit, streak, tasksFor, teacherItems, unread } from './schedule'
+import { balance, dueText, needsFor, examSoon, nextExam, progress, shouldLogVisit, streak, tasksFor, teacherItems, unread } from './schedule'
 import { emptySnapshot, type Snapshot } from './types'
 
 const base = (): Snapshot => ({
@@ -41,6 +41,22 @@ describe('日期與假日', () => {
   })
 })
 
+describe('我需要', () => {
+  it('沒準備的照期限排在前面；準備好的留到隔天；拿掉的不顯示', () => {
+    const s = applyAll(base(), [
+      { t: 'need', id: 'a', title: '色紙', due: null, at: '2026-10-12T01:00:00.000Z' },
+      { t: 'need', id: 'b', title: '班費', due: '2026-10-13', at: '2026-10-12T02:00:00.000Z' },
+      { t: 'need', id: 'c', title: '膠水', due: null, at: '2026-10-12T03:00:00.000Z' },
+      { t: 'need-done', id: 'c', at: '2026-10-12T04:00:00.000Z' },
+      { t: 'need', id: 'd', title: '寫錯', due: null, at: '2026-10-12T05:00:00.000Z' },
+      { t: 'need-del', id: 'd', at: '2026-10-12T06:00:00.000Z' },
+    ])
+    expect(needsFor('2026-10-12', s).map((n) => n.title)).toEqual(['班費', '色紙', '膠水'])
+    expect(needsFor('2026-10-13', s).map((n) => n.title)).toEqual(['班費', '色紙', '膠水'])
+    expect(needsFor('2026-10-14', s).map((n) => n.title)).toEqual(['班費', '色紙'])
+  })
+})
+
 describe('老師說', () => {
   const t = (id: string, day: string, due: string | null) =>
     ({ t: 'ask', id, day, title: id, at: `${day}T01:00:00.000Z`, source: 'teacher', due }) as const
@@ -68,7 +84,7 @@ describe('老師說', () => {
     expect(dueText('2026-10-12', '2026-10-12')?.text).toBe('今天到期')
     expect(dueText('2026-10-13', '2026-10-12')?.text).toBe('明天到期')
     expect(dueText('2026-10-16', '2026-10-12')?.text).toBe('10/16（週五）到期')
-    expect(dueText('2026-10-11', '2026-10-12')).toEqual({ text: '10/11 到期，已經過了', tone: 'late' })
+    expect(dueText('2026-10-11', '2026-10-12')).toMatchObject({ text: '10/11 到期，已經過了', short: '過期 10/11', tone: 'late' })
   })
 })
 

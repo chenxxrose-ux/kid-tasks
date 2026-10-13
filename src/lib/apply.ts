@@ -51,6 +51,14 @@ export function apply(s: Snapshot, op: Op): Snapshot {
       return { ...s, exams: s.exams.filter((e) => e.id !== op.id) }
     case 'task':
       return { ...s, tasks: s.tasks.some((t) => t.id === op.task.id) ? s.tasks.map((t) => (t.id === op.task.id ? op.task : t)) : [...s.tasks, op.task] }
+    case 'need':
+      return (s.needs ?? []).some((n) => n.id === op.id)
+        ? s
+        : { ...s, needs: [...(s.needs ?? []), { id: op.id, title: op.title, due: op.due, created_at: op.at, done_at: null, removed_at: null }] }
+    case 'need-done':
+      return { ...s, needs: (s.needs ?? []).map((n) => (n.id === op.id ? { ...n, done_at: op.at } : n)) }
+    case 'need-del':
+      return { ...s, needs: (s.needs ?? []).map((n) => (n.id === op.id ? { ...n, removed_at: op.at } : n)) }
     case 'visit':
       return s.visits.some((v) => v.id === op.id) ? s : { ...s, visits: [...s.visits, { id: op.id, at: op.at }] }
   }
