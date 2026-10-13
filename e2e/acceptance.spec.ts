@@ -106,7 +106,7 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
   await expect(kbox.getByRole('alert')).toHaveText('請寫老師交代什麼')
   await kbox.getByLabel('老師交代什麼').fill('帶直笛')
   await kbox.getByRole('button', { name: '記下來' }).click()
-  await expect(kbox).toContainText('明天到期')
+  await expect(kbox).toContainText('明天')
 
   const mbox = mom.locator('.teach')
   await expect(mbox).toContainText('帶直笛')
@@ -131,7 +131,7 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
   await mbox.getByRole('button', { name: '明天' }).click()
   await mbox.getByRole('button', { name: '儲存' }).click()
   await expect(kbox).toContainText('繳班費 200 元')
-  await expect(kbox.getByRole('button', { name: /繳班費 200 元/ })).toContainText('明天到期')
+  await expect(kbox.getByRole('button', { name: /繳班費 200 元/ })).toContainText('明天')
   await mbox.getByRole('button', { name: '修改「繳班費 200 元」' }).click()
   await mbox.getByRole('button', { name: '拿掉這件' }).click()
   await mbox.getByRole('button', { name: '確定拿掉' }).click()
@@ -145,14 +145,14 @@ test('我需要：樂樂寫，媽媽們按準備好了，樂樂看到時間', as
   await expect(kbox.getByRole('alert')).toHaveText('請寫需要什麼')
   await kbox.getByLabel('需要什麼').fill('美勞課的色紙')
   await kbox.getByRole('button', { name: '請媽媽們準備' }).click()
-  await expect(kbox).toContainText('明天要')
+  await expect(kbox).toContainText('明天')
 
   const mbox = mom.locator('.need')
   await expect(mbox.locator('h2')).toContainText('樂樂需要')
   await expect(mbox.locator('h2')).toContainText('還有 1 件要準備')
   await mbox.getByRole('button', { name: /美勞課的色紙/ }).click()
   await expect(mbox.locator('h2')).toContainText('都準備好了')
-  await expect(kbox).toContainText(/媽媽們準備好了 \d\d:\d\d/)
+  await expect(kbox).toContainText(/準備好了 \d\d:\d\d/)
 
   // 樂樂可以拿掉還沒準備的
   await kbox.getByRole('button', { name: '還需要別的' }).click()
@@ -160,7 +160,7 @@ test('我需要：樂樂寫，媽媽們按準備好了，樂樂看到時間', as
   await kbox.getByRole('button', { name: '不急' }).click()
   await kbox.getByRole('button', { name: '請媽媽們準備' }).click()
   await expect(mbox).toContainText('寫錯的')
-  await kbox.getByRole('button', { name: '拿掉「寫錯的」' }).click()
+  await kbox.getByRole('button', { name: /寫錯的，點一下可以拿掉/ }).click()
   await kbox.getByRole('button', { name: '確定拿掉' }).click()
   await expect(mbox).not.toContainText('寫錯的')
 })

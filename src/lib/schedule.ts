@@ -1,4 +1,4 @@
-import { addDays, daysBetween, dayOf, md, mdw, taipei } from './dates'
+import { WK, addDays, daysBetween, dayOf, md, mdw, taipei, weekday } from './dates'
 import { ruleDay, type Holidays } from './calendar'
 import type { Exam, Message, Read, Role, Snapshot, Slot } from './types'
 
@@ -63,10 +63,10 @@ export function teacherItems(today: string, s: Snapshot, keepDays = 0): TeacherI
 export function dueText(due: string | null, today: string) {
   if (!due) return null
   const n = daysBetween(today, due)
-  if (n < 0) return { text: `${md(due)} 到期，已經過了`, tone: 'late' as const }
-  if (n === 0) return { text: '今天到期', tone: 'late' as const }
-  if (n === 1) return { text: '明天到期', tone: 'soon' as const }
-  return { text: `${mdw(due)}到期`, tone: '' as const }
+  if (n < 0) return { text: `${md(due)} 到期，已經過了`, short: `過期 ${md(due)}`, tone: 'late' as const }
+  if (n === 0) return { text: '今天到期', short: '今天', tone: 'late' as const }
+  if (n === 1) return { text: '明天到期', short: '明天', tone: 'soon' as const }
+  return { text: `${mdw(due)}到期`, short: `${md(due)} 週${WK[weekday(due)]}`, tone: '' as const }
 }
 
 export function checksOn(day: string, s: Snapshot) {

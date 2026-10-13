@@ -3,7 +3,7 @@ import { newId, useStore } from '../data/store'
 import { addDays, hmOf, md, taipeiToday } from '../../lib/dates'
 import { dueText, type TeacherItem } from '../../lib/schedule'
 import { Check } from '../../ui/icons'
-import { RemoveLink } from '../../ui/kit'
+import { AddButton, AddRow, RemoveLink } from '../../ui/kit'
 
 /**
  * 老師說：老師交代的事放在第一頁，做完前一直留著。
@@ -15,13 +15,17 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
   const left = items.filter((t) => !t.doneAt)
   const kid = role === 'kid'
   const shown = kid ? left : items
+  const [adding, setAdding] = useState(false)
   return (
     <section className="teach" aria-label="老師說">
-      {/* 沒有事的時候只留一行，不佔第一頁 */}
+      {/* 沒有事的時候只留一行，不佔第一頁；有事的時候「＋ 記下」放在標題列 */}
       {shown.length ? (
         <h2>
           老師說
-          <span>{kid ? `${left.length} 件` : `${items.length - left.length} / ${items.length} 完成`}</span>
+          <span>
+            {kid ? `${left.length} 件` : `${items.length - left.length} / ${items.length} 完成`}
+            {adding ? null : <AddButton label="記下老師說的事" onClick={() => setAdding(true)} />}
+          </span>
         </h2>
       ) : null}
       <div className="card">
@@ -36,15 +40,22 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
                 </span>
                 <span className="tt">
                   <b>{t.title}</b>
-                  {hint}
                 </span>
+                {/* 期限放右邊，不多佔一行 */}
+                {due ? <span className={`tag ${due.tone}`}>{due.short}</span> : null}
               </button>
             </div>
           ) : (
             <MomRow key={t.id} t={t} hint={hint} />
           )
         })}
-        <TeacherForm compact={!shown.length} />
+        {adding ? (
+          <TeacherForm compact={!shown.length} onClose={() => setAdding(false)} />
+        ) : shown.length ? null : (
+          <AddRow onClick={() => setAdding(true)} label="記下老師說的事">
+            老師說<i>：記下老師交代的事</i>
+          </AddRow>
+        )}
       </div>
     </section>
   )
@@ -81,33 +92,13 @@ type DueChoice = 'none' | 'tomorrow' | 'pick'
 function TeacherForm({ compact, item, onClose }: { compact: boolean; item?: TeacherItem; onClose?: () => void }) {
   const { run } = useStore()
   const today = taipeiToday()
-  const [open, setOpenState] = useState(Boolean(item))
   const [v, setV] = useState(item?.title ?? '')
   const [when, setWhen] = useState<DueChoice>(item ? (item.due ? 'pick' : 'none') : 'tomorrow')
   const [picked, setPicked] = useState(item?.due ?? '')
   const [err, setErr] = useState('')
   const [confirm, setConfirm] = useState(false)
   const tid = item ? `teach-${item.askId}` : 'teachtitle'
-  const setOpen = (o: boolean) => (item && !o ? onClose?.() : setOpenState(o))
-  if (!open)
-    return (
-      <div className="task">
-        <button className="tbtn" onClick={() => setOpen(true)}>
-          <span className="box" style={{ borderStyle: 'dashed' }} />
-          <span className="tt">
-            <b className="addlink">
-              {compact ? (
-                <>
-                  老師說<i>：記下老師交代的事</i>
-                </>
-              ) : (
-                '記下老師說的事'
-              )}
-            </b>
-          </span>
-        </button>
-      </div>
-    )
+  const setOpen = (o: boolean) => (o ? undefined : onClose?.())
   return (
     <form
       className={`pad ${item ? 'editform' : ''}`}

@@ -180,3 +180,19 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .due.ok{color:var(--accent)}
 .box.wait{border-radius:50%;border-style:dotted}
 .need .done .box{background:var(--accent);border-color:var(--accent)}
+/* 第一頁縮短：三個交代區的列高、標題列；新增按鈕放到標題列 */
+main{gap:12px}
+.askbox .tbtn,.teach .tbtn,.need .tbtn{min-height:48px;padding-top:6px;padding-bottom:6px}
+.askbox h2,.teach h2,.need h2{padding-top:8px;align-items:center}
+.askbox h2 span,.teach h2 span,.need h2 span{display:flex;align-items:center;gap:8px}
+.hadd{border:1.5px solid currentColor;border-radius:999px;min-height:32px;padding:0 10px;font-size:13px;font-weight:700;background:transparent;color:var(--mom);margin:-4px 0}
+.teach .hadd{color:var(--board)}
+.need .hadd{color:var(--accent)}
+.askbox .tt .addlink{color:var(--mom);font-size:16px;font-weight:700}
+.askbox .tt .addlink i{font-style:normal;color:var(--muted);font-weight:500}
+.time.ok{color:var(--accent);font-weight:700}
+.hero{padding:12px 18px}
+.tag{flex:none;font-size:13px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--bubble);color:var(--muted);white-space:nowrap}
+.tag.soon{background:var(--accent-soft);color:var(--accent)}
+.tag.late{background:var(--warn-soft);color:var(--warn)}
+.rowact{display:flex;justify-content:flex-end;gap:16px;padding:0 16px 6px}

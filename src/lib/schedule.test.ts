@@ -84,7 +84,7 @@ describe('老師說', () => {
     expect(dueText('2026-10-12', '2026-10-12')?.text).toBe('今天到期')
     expect(dueText('2026-10-13', '2026-10-12')?.text).toBe('明天到期')
     expect(dueText('2026-10-16', '2026-10-12')?.text).toBe('10/16（週五）到期')
-    expect(dueText('2026-10-11', '2026-10-12')).toEqual({ text: '10/11 到期，已經過了', tone: 'late' })
+    expect(dueText('2026-10-11', '2026-10-12')).toMatchObject({ text: '10/11 到期，已經過了', short: '過期 10/11', tone: 'late' })
   })
 })
 
