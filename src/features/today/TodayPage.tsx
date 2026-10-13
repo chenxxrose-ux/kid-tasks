@@ -6,7 +6,7 @@ import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, str
 import { TeacherBox } from './Teacher'
 import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
-import { MsgBanner, SyncNotes } from '../../ui/kit'
+import { MsgBanner, RemoveLink, SyncNotes } from '../../ui/kit'
 
 export function TodayPage({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: string) => void }) {
   const { role } = useStore()
@@ -295,7 +295,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
             </h2>
             <div className="card">
               {asks.map((t) => (
-                <AskRow key={t.id} t={t} at={c.get(t.id)} canRemove={day >= today && !c.has(t.id)} />
+                <AskRow key={t.id} t={t} at={c.get(t.id)} canEdit={day >= today && !c.has(t.id)} />
               ))}
               {day >= today ? <AskForm day={day} onAdd={(title) => run({ t: 'ask', id: newId(), day, title, at: new Date().toISOString() })} /> : null}
             </div>
@@ -330,10 +330,10 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
   )
 }
 
-function AskRow({ t, at, canRemove }: { t: DayTask; at?: string; canRemove: boolean }) {
-  const { run } = useStore()
-  const [confirm, setConfirm] = useState(false)
+function AskRow({ t, at, canEdit }: { t: DayTask; at?: string; canEdit: boolean }) {
+  const [editing, setEditing] = useState(false)
   const id = t.id.slice(4)
+  if (editing) return <AskEdit id={id} title={t.title} onClose={() => setEditing(false)} />
   return (
     <div className={`task ${at ? 'done' : ''}`}>
       <div className="tbtn" style={{ cursor: 'default' }}>
@@ -344,19 +344,49 @@ function AskRow({ t, at, canRemove }: { t: DayTask; at?: string; canRemove: bool
           <b>{t.title}</b>
         </span>
         {at ? <span className="time">{hmOf(at)}</span> : null}
-        {canRemove ? (
-          confirm ? (
-            <button className="linkbtn danger" onClick={() => run({ t: 'unask', id, at: new Date().toISOString() })}>
-              確定拿掉
-            </button>
-          ) : (
-            <button className="linkbtn" style={{ color: 'var(--muted)', fontWeight: 500 }} onClick={() => setConfirm(true)} aria-label={`拿掉「${t.title}」`}>
-              拿掉
-            </button>
-          )
+        {canEdit ? (
+          <button className="linkbtn edit" onClick={() => setEditing(true)} aria-label={`修改「${t.title}」`}>
+            修改
+          </button>
         ) : null}
       </div>
     </div>
+  )
+}
+
+/** 修改交代的事：改文字，或拿掉 */
+function AskEdit({ id, title, onClose }: { id: string; title: string; onClose: () => void }) {
+  const { run } = useStore()
+  const [v, setV] = useState(title)
+  const [err, setErr] = useState('')
+  const [confirm, setConfirm] = useState(false)
+  return (
+    <form
+      className="pad editform"
+      onSubmit={(e) => {
+        e.preventDefault()
+        const next = v.trim()
+        if (!next) return setErr('請寫要交代的事')
+        if (next.length > 40) return setErr('請寫短一點（40 字以內）')
+        if (next !== title) run({ t: 'ask-edit', id, title: next })
+        onClose()
+      }}
+    >
+      <label className="sr" htmlFor={`edit-${id}`}>
+        修改交代的事
+      </label>
+      <input className="input" id={`edit-${id}`} autoComplete="off" autoFocus value={v} onChange={(e) => setV(e.target.value)} />
+      <div className="err" role="alert">
+        {err}
+      </div>
+      <div className="grid2">
+        <button type="button" className="btn ghost" onClick={onClose}>
+          取消
+        </button>
+        <button className="btn mom">儲存</button>
+      </div>
+      <RemoveLink confirm={confirm} onAsk={() => setConfirm(true)} onRemove={() => run({ t: 'unask', id, at: new Date().toISOString() })} />
+    </form>
   )
 }
 

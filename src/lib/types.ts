@@ -38,6 +38,7 @@ export type Op =
   | { t: 'uncheck'; day: string; task_id: string }
   | { t: 'ask'; id: string; day: string; title: string; at: string; source?: 'mom' | 'teacher'; due?: string | null }
   | { t: 'unask'; id: string; at: string }
+  | { t: 'ask-edit'; id: string; title: string; due?: string | null }
   | { t: 'msg'; id: string; role: Role; body: string; at: string }
   | { t: 'read'; role: Role; at: string }
   | { t: 'bank'; id: string; kind: 'in' | 'out'; amount: number; memo: string; at: string }

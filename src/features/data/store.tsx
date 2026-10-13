@@ -64,6 +64,7 @@ const describe = (op: Op) =>
     uncheck: '取消打勾',
     ask: '交代的事',
     unask: '拿掉交代的事',
+    'ask-edit': '修改交代的事',
     msg: '留言',
     read: '已讀',
     bank: '存錢筒紀錄',
