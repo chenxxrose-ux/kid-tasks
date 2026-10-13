@@ -4,6 +4,7 @@ import { dayNote, isOff } from '../../lib/calendar'
 import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from '../../lib/dates'
 import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
 import { TeacherBox } from './Teacher'
+import { KidNeeds, MomNeeds } from './Needs'
 import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
 import { MsgBanner, RemoveLink, SyncNotes } from '../../ui/kit'
@@ -137,6 +138,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
           </section>
         ) : null}
         <TeacherBox items={teach} onTick={(t) => tick({ id: t.id, title: t.title, slot: 'ask' })} />
+        <KidNeeds />
         <ExamCard day={day} />
         {!fin ? (
           <div className="card">
@@ -288,6 +290,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
       <main>
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
+        {day === today ? <MomNeeds /> : null}
         {asks.length || day >= today ? (
           <section className="askbox">
             <h2>

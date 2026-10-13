@@ -18,6 +18,8 @@ export type BankRow = {
 }
 export type Exam = { id: string; day: string; title: string; subjects: string }
 export type Visit = { id: string; at: string }
+/** 我需要：樂樂請媽媽們準備的東西 */
+export type Need = { id: string; title: string; due: string | null; created_at: string; done_at: string | null; removed_at: string | null }
 
 export type Snapshot = {
   tasks: Task[]
@@ -28,9 +30,10 @@ export type Snapshot = {
   bank: BankRow[]
   exams: Exam[]
   visits: Visit[]
+  needs: Need[]
 }
 
-export const emptySnapshot = (): Snapshot => ({ tasks: [], asks: [], checks: [], messages: [], reads: [], bank: [], exams: [], visits: [] })
+export const emptySnapshot = (): Snapshot => ({ tasks: [], asks: [], checks: [], messages: [], reads: [], bank: [], exams: [], visits: [], needs: [] })
 
 /** 一個還沒送到資料庫的動作（離線時排隊，連上網路依序送出） */
 export type Op =
@@ -48,5 +51,8 @@ export type Op =
   | { t: 'exam-del'; id: string }
   | { t: 'task'; task: Task; isNew: boolean }
   | { t: 'visit'; id: string; at: string }
+  | { t: 'need'; id: string; title: string; due: string | null; at: string }
+  | { t: 'need-done'; id: string; at: string | null }
+  | { t: 'need-del'; id: string; at: string }
 
 export type Queued = Op & { qid: string }

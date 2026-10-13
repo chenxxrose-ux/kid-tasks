@@ -113,14 +113,16 @@ main{gap:14px}
 .toast button{border:none;background:transparent;color:inherit;font-weight:700;min-height:44px;padding:0 12px;text-decoration:underline}
 .parthd:disabled{cursor:default}
 /* 交代區：白卡片＋左邊色帶，不再框中框。媽媽們橘、老師綠 */
-.askbox,.teach{position:relative;background:var(--card);border-radius:16px;overflow:hidden}
-.askbox::before,.teach::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--mom)}
+.askbox,.teach,.need{position:relative;background:var(--card);border-radius:16px;overflow:hidden}
+.askbox::before,.teach::before,.need::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--mom)}
 .teach::before{background:var(--board)}
-.askbox h2,.teach h2{margin:0;padding:12px 16px 2px 16px;font-size:15px;font-weight:900;color:var(--mom);display:flex;justify-content:space-between;align-items:baseline;letter-spacing:.5px}
+.need::before{background:var(--accent)}
+.askbox h2,.teach h2,.need h2{margin:0;padding:12px 16px 2px 16px;font-size:15px;font-weight:900;color:var(--mom);display:flex;justify-content:space-between;align-items:baseline;letter-spacing:.5px}
 .teach h2{color:var(--board)}
-.askbox h2 span,.teach h2 span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
-.askbox .card,.teach .card{border-radius:0;background:transparent}
-.askbox .tt b,.teach .tt b{font-size:17px;font-weight:600}
+.need h2{color:var(--accent)}
+.askbox h2 span,.teach h2 span,.need h2 span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.askbox .card,.teach .card,.need .card{border-radius:0;background:transparent}
+.askbox .tt b,.teach .tt b,.need .tt b{font-size:17px;font-weight:600}
 @media (prefers-reduced-motion:reduce){.bar i,.chev{transition:none}}
 
 html{-webkit-text-size-adjust:100%}
@@ -171,3 +173,10 @@ body{margin:0;-webkit-tap-highlight-color:transparent}
 .editform{background:var(--bubble)}
 .task+.editform,.editform+.task{border-top:1px solid var(--line)}
 .btn.mom{background:var(--mom)}
+.need .tt .addlink{color:var(--accent);font-size:16px;font-weight:700}
+.need .tt .addlink i{font-style:normal;color:var(--muted);font-weight:500}
+.need .pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.need .btn:not(.ghost){background:var(--accent)}
+.due.ok{color:var(--accent)}
+.box.wait{border-radius:50%;border-style:dotted}
+.need .done .box{background:var(--accent);border-color:var(--accent)}

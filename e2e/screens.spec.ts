@@ -32,6 +32,16 @@ test('每一頁的截圖', async ({ browser }) => {
   }
   await add('數學習作第 3 頁訂正完交給小老師', '明天')
   await add('聯絡簿請家長簽名', '老師沒說')
+  const need = async (title: string, when: string) => {
+    const box = kid.locator('.need')
+    await box.getByRole('button', { name: /我需要|還需要別的/ }).click()
+    await box.getByLabel('需要什麼').fill(title)
+    await box.getByRole('button', { name: when }).click()
+    await box.getByRole('button', { name: '請媽媽們準備' }).click()
+  }
+  await need('美勞課的色紙和膠水', '明天')
+  await need('新的自動鉛筆筆芯', '不急')
+  await mom.locator('.need').getByRole('button', { name: /自動鉛筆/ }).click()
   await kid.locator('.teach').getByRole('button', { name: /記下老師/ }).click()
   await kid.screenshot({ path: `${OUT}/1b-kid-teacher-form.png`, fullPage: true })
   await kid.locator('.teach').getByRole('button', { name: '取消' }).click()

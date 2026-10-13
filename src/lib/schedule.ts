@@ -121,3 +121,16 @@ export function shouldLogVisit(s: Snapshot, now: Date) {
   const last = s.visits.reduce((a, v) => (v.at > a ? v.at : a), '')
   return !last || now.getTime() - Date.parse(last) >= 5 * 60_000
 }
+
+/**
+ * 我需要：還沒準備好的一直留著；準備好的留到隔天（讓樂樂看到「準備好了」）。
+ * 沒準備好的照期限排，期限近的在前面。
+ */
+export function needsFor(today: string, s: Snapshot) {
+  return (s.needs ?? [])
+    .filter((n) => !n.removed_at && (!n.done_at || dayOf(n.done_at) >= addDays(today, -1)))
+    .sort(
+      (a, b) =>
+        Number(Boolean(a.done_at)) - Number(Boolean(b.done_at)) || (a.due ?? '9999').localeCompare(b.due ?? '9999') || a.created_at.localeCompare(b.created_at),
+    )
+}

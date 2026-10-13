@@ -138,6 +138,33 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
   await expect(kbox).not.toContainText('繳班費')
 })
 
+test('我需要：樂樂寫，媽媽們按準備好了，樂樂看到時間', async () => {
+  const kbox = kid.locator('.need')
+  await kbox.getByRole('button', { name: /我需要/ }).click()
+  await kbox.getByRole('button', { name: '請媽媽們準備' }).click()
+  await expect(kbox.getByRole('alert')).toHaveText('請寫需要什麼')
+  await kbox.getByLabel('需要什麼').fill('美勞課的色紙')
+  await kbox.getByRole('button', { name: '請媽媽們準備' }).click()
+  await expect(kbox).toContainText('明天要')
+
+  const mbox = mom.locator('.need')
+  await expect(mbox.locator('h2')).toContainText('樂樂需要')
+  await expect(mbox.locator('h2')).toContainText('還有 1 件要準備')
+  await mbox.getByRole('button', { name: /美勞課的色紙/ }).click()
+  await expect(mbox.locator('h2')).toContainText('都準備好了')
+  await expect(kbox).toContainText(/媽媽們準備好了 \d\d:\d\d/)
+
+  // 樂樂可以拿掉還沒準備的
+  await kbox.getByRole('button', { name: '還需要別的' }).click()
+  await kbox.getByLabel('需要什麼').fill('寫錯的')
+  await kbox.getByRole('button', { name: '不急' }).click()
+  await kbox.getByRole('button', { name: '請媽媽們準備' }).click()
+  await expect(mbox).toContainText('寫錯的')
+  await kbox.getByRole('button', { name: '拿掉「寫錯的」' }).click()
+  await kbox.getByRole('button', { name: '確定拿掉' }).click()
+  await expect(mbox).not.toContainText('寫錯的')
+})
+
 test('留言：新留言每一頁都看得到，按知道了或回覆才消失', async () => {
   await mom.getByRole('button', { name: /^留言/ }).click()
   await mom.getByRole('textbox', { name: '留言' }).fill('今天早點睡')

@@ -74,6 +74,9 @@ const describe = (op: Op) =>
     'exam-del': '刪除考試',
     task: '任務',
     visit: '打開紀錄',
+    need: '我需要',
+    'need-done': '準備好了',
+    'need-del': '拿掉我需要的',
   })[op.t]
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -183,7 +186,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       t = setTimeout(() => void refresh(), 250)
     }
     const ch = supabase.channel('kid-tasks')
-    for (const table of ['kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits'])
+    for (const table of ['kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs'])
       ch.on('postgres_changes', { event: '*', schema: 'public', table }, later)
     ch.subscribe()
     return () => {
