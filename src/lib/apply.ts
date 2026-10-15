@@ -1,4 +1,4 @@
-import type { Op, Snapshot } from './types'
+import type { Op, PtEntry, PtReq, Snapshot } from './types'
 
 // 把還沒送出的動作疊在伺服器資料上，畫面立刻反映（離線也一樣）
 export function apply(s: Snapshot, op: Op): Snapshot {
@@ -59,6 +59,64 @@ export function apply(s: Snapshot, op: Op): Snapshot {
       return { ...s, needs: (s.needs ?? []).map((n) => (n.id === op.id ? { ...n, done_at: op.at } : n)) }
     case 'need-del':
       return { ...s, needs: (s.needs ?? []).map((n) => (n.id === op.id ? { ...n, removed_at: op.at } : n)) }
+    case 'pt-req':
+      return s.ptReqs.some((q) => q.id === op.id)
+        ? s
+        : {
+            ...s,
+            ptReqs: [
+              ...s.ptReqs,
+              {
+                id: op.id,
+                kind: op.kind,
+                item_id: op.item_id,
+                reward_id: op.reward_id,
+                title: op.title,
+                own: op.own,
+                pts: op.pts,
+                status: 'pending',
+                gave: null,
+                when_text: null,
+                created_at: op.at,
+                decided_at: null,
+                delivered_at: null,
+              },
+            ],
+          }
+    case 'pt-cancel':
+      return { ...s, ptReqs: s.ptReqs.map((q) => (q.id === op.id && q.status === 'pending' ? { ...q, status: 'cancelled', decided_at: op.at } : q)) }
+    case 'pt-decide': {
+      const q = s.ptReqs.find((x) => x.id === op.id)
+      if (!q || q.status !== 'pending') return s
+      const status: PtReq['status'] = op.duty ? 'duty' : op.give === null ? 'no' : 'ok'
+      const next = { ...q, status, gave: q.kind === 'help' && status === 'ok' ? op.give : null, when_text: q.kind === 'redeem' && status === 'ok' ? op.when.trim() || null : null, decided_at: op.at }
+      const entry: PtEntry[] =
+        status !== 'ok' || s.ptLedger.some((l) => l.id === q.id)
+          ? []
+          : [{ id: q.id, kind: q.kind, pts: q.kind === 'help' ? op.give! : -q.pts, why: q.kind === 'help' ? q.title : `換：${q.title}`, week: null, created_at: op.at }]
+      const goal = q.kind === 'redeem' && status === 'ok' && s.ptState?.goal === q.reward_id ? { ...s.ptState, goal: null } : s.ptState
+      return { ...s, ptReqs: s.ptReqs.map((x) => (x.id === q.id ? next : x)), ptLedger: [...s.ptLedger, ...entry], ptState: goal }
+    }
+    case 'pt-deliver':
+      return { ...s, ptReqs: s.ptReqs.map((q) => (q.id === op.id && !q.delivered_at ? { ...q, delivered_at: op.at } : q)) }
+    case 'pt-bonus':
+      return s.ptLedger.some((l) => l.id === op.id)
+        ? s
+        : { ...s, ptLedger: [...s.ptLedger, { id: op.id, kind: 'bonus', pts: op.pts, why: op.why, week: null, created_at: op.at }] }
+    case 'pt-streak':
+      return s.ptLedger.some((l) => l.id === op.id || (l.kind === 'streak' && l.week === op.week))
+        ? s
+        : { ...s, ptLedger: [...s.ptLedger, { id: op.id, kind: 'streak', pts: 10, why: '一週 5 天全做完', week: op.week, created_at: op.at }] }
+    case 'pt-goal':
+      return { ...s, ptState: { seen_at: s.ptState?.seen_at ?? '', goal: op.goal } }
+    case 'pt-seen':
+      return { ...s, ptState: { goal: s.ptState?.goal ?? null, seen_at: s.ptState && s.ptState.seen_at > op.at ? s.ptState.seen_at : op.at } }
+    case 'pt-item': {
+      const row = { id: op.id, title: op.title, active: op.active, sort: op.sort }
+      return { ...s, ptItems: s.ptItems.some((i) => i.id === op.id) ? s.ptItems.map((i) => (i.id === op.id ? row : i)) : [...s.ptItems, row] }
+    }
+    case 'pt-reward':
+      return { ...s, ptRewards: s.ptRewards.map((r) => (r.id === op.id ? { ...r, pts: op.pts } : r)) }
     case 'visit':
       return s.visits.some((v) => v.id === op.id) ? s : { ...s, visits: [...s.visits, { id: op.id, at: op.at }] }
   }

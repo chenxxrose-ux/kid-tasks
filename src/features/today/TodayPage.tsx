@@ -5,13 +5,14 @@ import { WK, addDays, hmOf, md, mdw, taipei, taipeiToday, weekOf, weekday } from
 import { PARTS, checksOn, currentPart, missed, nextExam, partName, progress, streak, tasksFor, teacherItems, visitsOn, type DayTask } from '../../lib/schedule'
 import { TeacherBox } from './Teacher'
 import { KidNeeds, MomNeeds } from './Needs'
+import { PointsLine } from '../points/PointsPage'
 import { Sortable } from '../../ui/Sortable'
 import { Check } from '../../ui/icons'
 import { AddButton, AddRow, MsgBanner, RemoveLink, SyncNotes } from '../../ui/kit'
 
-export function TodayPage({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: string) => void }) {
+export function TodayPage({ goMsgs, goPlan, goPts }: { goMsgs: () => void; goPlan: (examId: string) => void; goPts: () => void }) {
   const { role } = useStore()
-  return role === 'kid' ? <KidToday goMsgs={goMsgs} /> : <MomToday goMsgs={goMsgs} goPlan={goPlan} />
+  return role === 'kid' ? <KidToday goMsgs={goMsgs} goPts={goPts} /> : <MomToday goMsgs={goMsgs} goPlan={goPlan} goPts={goPts} />
 }
 
 function Header({ day, title, children }: { day: string; title: string; children?: React.ReactNode }) {
@@ -89,7 +90,7 @@ function ExamCard({ day, onFill }: { day: string; onFill?: (id: string) => void 
   )
 }
 
-function KidToday({ goMsgs }: { goMsgs: () => void }) {
+function KidToday({ goMsgs, goPts }: { goMsgs: () => void; goPts: () => void }) {
   const { data, holidays, run } = useStore()
   const day = taipeiToday()
   const ts = tasksFor(day, data, holidays)
@@ -124,6 +125,7 @@ function KidToday({ goMsgs }: { goMsgs: () => void }) {
       <main>
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
+        <PointsLine onOpen={goPts} />
         {fin ? <FinCard day={day} count={ts.length} last={ts.map((t) => c.get(t.id)!).sort().pop()!} /> : null}
         {asks.length ? (
           <section className="askbox">
@@ -218,7 +220,7 @@ function FinCard({ day, count, last }: { day: string; count: number; last: strin
   )
 }
 
-function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: string) => void }) {
+function MomToday({ goMsgs, goPlan, goPts }: { goMsgs: () => void; goPlan: (examId: string) => void; goPts: () => void }) {
   const { data, holidays, run } = useStore()
   const today = taipeiToday()
   const [day, setDay] = useState(today)
@@ -292,6 +294,7 @@ function MomToday({ goMsgs, goPlan }: { goMsgs: () => void; goPlan: (examId: str
         <SyncNotes />
         <MsgBanner onReply={goMsgs} />
         {day === today ? <MomNeeds /> : null}
+        {day === today ? <PointsLine onOpen={goPts} /> : null}
         {asks.length || day >= today ? (
           <section className="askbox">
             {asks.length ? (

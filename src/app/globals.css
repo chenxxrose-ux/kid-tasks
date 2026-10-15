@@ -196,3 +196,57 @@ main{gap:12px}
 .tag.soon{background:var(--accent-soft);color:var(--accent)}
 .tag.late{background:var(--warn-soft);color:var(--warn)}
 .rowact{display:flex;justify-content:flex-end;gap:16px;padding:0 16px 6px}
+/* 點數：目標卡淡湖藍（不跟深海軍藍的段考卡搶），主要按鈕湖藍（莓果紅是媽媽們交代的） */
+.btn.pt{background:var(--accent)}
+.btn.big{min-height:56px;font-size:17px}
+.btn.sm{min-height:40px;padding:0 14px;font-size:15px;border-radius:10px;flex:none}
+.ptgoal{background:var(--accent-soft);border:1px solid #CADCE8;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ptgtop{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.ptgname{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ptgname small{font-size:13px;font-weight:700;color:var(--accent)}
+.ptgname b{font-size:19px;font-weight:900;line-height:1.3;text-wrap:balance}
+.ptnum{font-size:36px;font-weight:900;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptnum small{font-size:15px;font-weight:700;color:var(--muted)}
+.ptbar{height:10px;border-radius:5px;background:var(--card)}
+.ptgfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin:-6px 0}
+.ptweek{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:12px 16px}
+.ptweek .tt b{font-weight:700}
+.ptn{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:900}
+.ptdots{display:flex;gap:5px;flex:none}
+.ptdots i{width:14px;height:14px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:9px;font-style:normal;font-weight:900;line-height:1}
+.ptdots i.on{background:var(--board)}
+.ptdots i.miss{background:var(--warn-soft);color:var(--warn)}
+.ptnews{background:var(--board-soft);border-radius:16px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.ptnh{font-size:13px;font-weight:900;color:var(--board);letter-spacing:.5px}
+.ptnr{display:flex;justify-content:space-between;gap:12px;font-size:16px;line-height:1.45}
+.ptnr span{min-width:0}
+.ptnr b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptnr b.plus{color:var(--board)}
+.btn.ptok{background:var(--board);align-self:flex-end;min-height:40px;padding:0 22px}
+.pthd{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 4px;font-weight:900}
+.pthd span{font-size:13px;font-weight:700;color:var(--muted)}
+.pttier{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:12px 16px 0}
+.ptstar{flex:none;border:none;background:none;font-size:22px;line-height:1;color:var(--box);min-width:44px;min-height:44px}
+.ptstar[aria-pressed="true"]{color:var(--accent)}
+.ptpill{min-height:40px;text-align:left;line-height:1.35;padding:6px 12px}
+.ptpill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.ptpill:disabled{color:var(--muted);opacity:1;background:var(--bg);cursor:default}
+.pth3{font-size:17px;font-weight:900}
+.ptsheet{border:2px solid var(--accent)}
+.ptreq{display:flex;flex-direction:column;gap:10px;padding:12px 16px}
+.ptreq+.ptreq,.line+.ptreq,.ptreq+.line{border-top:1px solid var(--line)}
+.ptacts{display:flex;flex-wrap:wrap;gap:8px}
+.ptacts .btn{min-height:44px}
+.ptacts .btn.pt{min-width:64px}
+.ptpts{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;flex:none}
+.ptpts .input{width:68px;text-align:right;font-variant-numeric:tabular-nums}
+.input.bad{border-color:var(--danger)}
+.ptfold{border-top:1px solid var(--line);padding-bottom:4px}
+.ptin{padding:10px 16px 0}
+.ptadd{display:flex;gap:8px;padding:10px 16px 6px}
+.ptadd .btn{flex:none}
+.ptrules{margin:0;padding:12px 16px 12px 34px;color:var(--muted);font-size:14px;line-height:1.7}
+.ptempty{padding:12px 16px 18px;font-size:14px}
+.ptline{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--accent);border-radius:14px;padding:10px 14px;text-align:left;min-height:56px}
+.ptline small{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.5px}
+.ptline b{font-weight:600}
