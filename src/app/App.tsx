@@ -5,11 +5,14 @@ import { TodayPage } from '../features/today/TodayPage'
 import { MessagesPage } from '../features/messages/MessagesPage'
 import { BankPage } from '../features/bank/BankPage'
 import { PlanPage } from '../features/plan/PlanPage'
+import { PointsPage } from '../features/points/PointsPage'
 import { shouldLogVisit, unread } from '../lib/schedule'
-import { BankIcon, MsgIcon, PlanIcon, TodayIcon } from '../ui/icons'
+import { pendingReqs, weeksToAward } from '../lib/points'
+import { taipeiToday } from '../lib/dates'
+import { BankIcon, MsgIcon, PlanIcon, StarIcon, TodayIcon } from '../ui/icons'
 import { MsgBanner } from '../ui/kit'
 
-type Tab = 'today' | 'msgs' | 'bank' | 'plan'
+type Tab = 'today' | 'pts' | 'msgs' | 'bank' | 'plan'
 
 export function App() {
   return (
@@ -36,7 +39,7 @@ function Gate() {
 }
 
 function Shell() {
-  const { role, data, run, signOut } = useStore()
+  const { role, data, holidays, run, signOut } = useStore()
   const [tab, setTab] = useState<Tab>('today')
   const [examId, setExamId] = useState<string | null>(null)
   const go = (t: Tab) => {
@@ -63,11 +66,20 @@ function Shell() {
     return () => document.removeEventListener('visibilitychange', log)
   }, [role])
 
+  // 一週 5 天全做完：樂樂的手機算到了就記 +10（同一週只會記一次）
+  const award = role === 'kid' && data.ptState ? weeksToAward(taipeiToday(), data, holidays) : []
+  const awardKey = award.join(',')
+  useEffect(() => {
+    if (!awardKey) return
+    for (const week of awardKey.split(',')) latest.current.run({ t: 'pt-streak', id: newId(), week, at: new Date().toISOString() })
+  }, [awardKey])
+
   if (!role) return null
   const n = unread(role, data.messages, data.reads).length
   const p = role === 'mom' ? data.bank.filter((b) => b.status === 'pending').length : 0
   const tabs: [Tab, string, React.ReactNode, number][] = [
     ['today', '今日事', <TodayIcon key="i" />, 0],
+    ['pts', '點數', <StarIcon key="i" />, role === 'mom' ? pendingReqs(data).length : 0],
     ['msgs', '留言', <MsgIcon key="i" />, n],
     ['bank', '存錢筒', <BankIcon key="i" />, p],
   ]
@@ -78,6 +90,7 @@ function Shell() {
       {tab === 'today' ? (
         <TodayPage
           goMsgs={() => go('msgs')}
+          goPts={() => go('pts')}
           goPlan={(id) => {
             setTab('plan')
             setExamId(id)
@@ -88,7 +101,7 @@ function Shell() {
           <div className="topban">
             <MsgBanner onReply={() => go('msgs')} />
           </div>
-          {tab === 'msgs' ? <MessagesPage /> : tab === 'bank' ? <BankPage /> : <PlanPage examId={examId} />}
+          {tab === 'msgs' ? <MessagesPage /> : tab === 'bank' ? <BankPage /> : tab === 'pts' ? <PointsPage /> : <PlanPage examId={examId} />}
         </>
       )}
       {tab !== 'msgs' ? (

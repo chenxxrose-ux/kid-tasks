@@ -128,11 +128,16 @@ function parseQuery(url) {
   return { select, where: where.length ? ` where ${where.join(' and ')}` : '', params, order, limit }
 }
 
-const TABLES = new Set(['kt_members', 'kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs'])
+const TABLES = new Set(['kt_members', 'kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs', 'kt_pt_items', 'kt_pt_rewards', 'kt_pt_reqs', 'kt_pt_ledger', 'kt_pt_state'])
 const RPCS = {
   kt_decide: ['p_id', 'p_approve'],
   kt_cancel: ['p_id'],
   kt_mark_read: ['p_at'],
+  kt_pt_decide: ['p_id', 'p_give', 'p_duty', 'p_when'],
+  kt_pt_cancel: ['p_id'],
+  kt_pt_deliver: ['p_id'],
+  kt_pt_goal: ['p_goal'],
+  kt_pt_seen: ['p_at'],
 }
 
 async function handleRest(req, res, url, body, user) {

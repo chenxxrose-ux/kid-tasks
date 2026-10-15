@@ -18,3 +18,4 @@ export const TodayIcon = () => svg(<><path d="M9 11l3 3 8-8" /><path d="M20 12v7
 export const MsgIcon = () => svg(<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />)
 export const BankIcon = () => svg(<><rect x="3" y="6" width="18" height="13" rx="3" /><path d="M3 10h18M16 15h2" /></>)
 export const PlanIcon = () => svg(<path d="M4 20h4L19 9l-4-4L4 16v4z" />)
+export const StarIcon = () => svg(<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />)

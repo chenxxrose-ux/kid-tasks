@@ -21,6 +21,27 @@ export type Visit = { id: string; at: string }
 /** 我需要：樂樂請媽媽們準備的東西 */
 export type Need = { id: string; title: string; due: string | null; created_at: string; done_at: string | null; removed_at: string | null }
 
+/** 點數：加分清單、獎勵、樂樂的申請、點數紀錄、目標 */
+export type PtItem = { id: string; title: string; active: boolean; sort: number }
+export type PtReward = { id: string; title: string; sub: string; pts: number; active: boolean; sort: number }
+export type PtReq = {
+  id: string
+  kind: 'help' | 'redeem'
+  item_id: string | null
+  reward_id: string | null
+  title: string
+  own: boolean
+  pts: number
+  status: 'pending' | 'ok' | 'no' | 'duty' | 'cancelled'
+  gave: number | null
+  when_text: string | null
+  created_at: string
+  decided_at: string | null
+  delivered_at: string | null
+}
+export type PtEntry = { id: string; kind: 'help' | 'bonus' | 'streak' | 'redeem'; pts: number; why: string; week: string | null; created_at: string }
+export type PtState = { goal: string | null; seen_at: string }
+
 export type Snapshot = {
   tasks: Task[]
   asks: Ask[]
@@ -31,9 +52,14 @@ export type Snapshot = {
   exams: Exam[]
   visits: Visit[]
   needs: Need[]
+  ptItems: PtItem[]
+  ptRewards: PtReward[]
+  ptReqs: PtReq[]
+  ptLedger: PtEntry[]
+  ptState: PtState | null
 }
 
-export const emptySnapshot = (): Snapshot => ({ tasks: [], asks: [], checks: [], messages: [], reads: [], bank: [], exams: [], visits: [], needs: [] })
+export const emptySnapshot = (): Snapshot => ({ tasks: [], asks: [], checks: [], messages: [], reads: [], bank: [], exams: [], visits: [], needs: [], ptItems: [], ptRewards: [], ptReqs: [], ptLedger: [], ptState: null })
 
 /** 一個還沒送到資料庫的動作（離線時排隊，連上網路依序送出） */
 export type Op =
@@ -54,5 +80,15 @@ export type Op =
   | { t: 'need'; id: string; title: string; due: string | null; at: string }
   | { t: 'need-done'; id: string; at: string | null }
   | { t: 'need-del'; id: string; at: string }
+  | { t: 'pt-req'; id: string; kind: 'help' | 'redeem'; item_id: string | null; reward_id: string | null; title: string; own: boolean; pts: number; at: string }
+  | { t: 'pt-cancel'; id: string; at: string }
+  | { t: 'pt-decide'; id: string; give: number | null; duty: boolean; when: string; at: string }
+  | { t: 'pt-deliver'; id: string; at: string }
+  | { t: 'pt-bonus'; id: string; pts: number; why: string; at: string }
+  | { t: 'pt-streak'; id: string; week: string; at: string }
+  | { t: 'pt-goal'; goal: string | null }
+  | { t: 'pt-seen'; at: string }
+  | { t: 'pt-item'; id: string; title: string; active: boolean; sort: number; isNew: boolean }
+  | { t: 'pt-reward'; id: string; pts: number }
 
 export type Queued = Op & { qid: string }

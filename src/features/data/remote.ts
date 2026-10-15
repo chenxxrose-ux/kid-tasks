@@ -17,9 +17,15 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     supabase.from('kt_exams').select('id,day,title,subjects').gte('day', addDays(since, -365)),
     supabase.from('kt_visits').select('id,at').gte('at', `${since}T00:00:00+08:00`),
     supabase.from('kt_needs').select('id,title,due,created_at,done_at,removed_at').gte('created_at', `${since}T00:00:00+08:00`),
+    supabase.from('kt_pt_items').select('id,title,active,sort'),
+    supabase.from('kt_pt_rewards').select('id,title,sub,pts,active,sort'),
+    supabase.from('kt_pt_reqs').select('id,kind,item_id,reward_id,title,own,pts,status,gave,when_text,created_at,decided_at,delivered_at').order('created_at'),
+    supabase.from('kt_pt_ledger').select('id,kind,pts,why,week,created_at').order('created_at'),
+    supabase.from('kt_pt_state').select('goal,seen_at').maybeSingle(),
   ])
   for (const x of r) if (x.error) throw x.error
-  const [tasks, asks, checks, messages, reads, bank, exams, visits, needs] = r.map((x) => x.data ?? []) as never[][]
+  const [tasks, asks, checks, messages, reads, bank, exams, visits, needs, ptItems, ptRewards, ptReqs, ptLedger] = r.slice(0, 13).map((x) => x.data ?? []) as never[][]
+  const st = r[13].data as { goal: string | null; seen_at: string } | null
   return {
     tasks,
     asks: (asks as Snapshot['asks']).map((a) => ({ ...a, created_at: iso(a.created_at)!, removed_at: iso(a.removed_at) })),
@@ -30,6 +36,16 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     exams,
     visits: (visits as Snapshot['visits']).map((v) => ({ ...v, at: iso(v.at)! })),
     needs: (needs as Snapshot['needs']).map((n) => ({ ...n, created_at: iso(n.created_at)!, done_at: iso(n.done_at), removed_at: iso(n.removed_at) })),
+    ptItems,
+    ptRewards,
+    ptReqs: (ptReqs as Snapshot['ptReqs']).map((q) => ({
+      ...q,
+      created_at: iso(q.created_at)!,
+      decided_at: iso(q.decided_at),
+      delivered_at: iso(q.delivered_at),
+    })),
+    ptLedger: (ptLedger as Snapshot['ptLedger']).map((l) => ({ ...l, pts: Number(l.pts), created_at: iso(l.created_at)! })),
+    ptState: st ? { goal: st.goal, seen_at: iso(st.seen_at)! } : null,
   }
 }
 
@@ -90,6 +106,30 @@ export async function send(op: Op): Promise<Err> {
         return supabase.from('kt_needs').update({ done_at: op.at }).eq('id', op.id)
       case 'need-del':
         return supabase.from('kt_needs').update({ removed_at: op.at }).eq('id', op.id)
+      case 'pt-req':
+        return supabase
+          .from('kt_pt_reqs')
+          .upsert({ id: op.id, kind: op.kind, item_id: op.item_id, reward_id: op.reward_id, title: op.title, own: op.own }, { onConflict: 'id', ignoreDuplicates: true })
+      case 'pt-cancel':
+        return supabase.rpc('kt_pt_cancel', { p_id: op.id })
+      case 'pt-decide':
+        return supabase.rpc('kt_pt_decide', { p_id: op.id, p_give: op.give, p_duty: op.duty, p_when: op.when })
+      case 'pt-deliver':
+        return supabase.rpc('kt_pt_deliver', { p_id: op.id })
+      case 'pt-bonus':
+        return supabase.from('kt_pt_ledger').upsert({ id: op.id, kind: 'bonus', pts: op.pts, why: op.why }, { onConflict: 'id', ignoreDuplicates: true })
+      case 'pt-streak':
+        return supabase.from('kt_pt_ledger').upsert({ id: op.id, kind: 'streak', pts: 10, why: '一週 5 天全做完', week: op.week }, { onConflict: 'id', ignoreDuplicates: true })
+      case 'pt-goal':
+        return supabase.rpc('kt_pt_goal', { p_goal: op.goal })
+      case 'pt-seen':
+        return supabase.rpc('kt_pt_seen', { p_at: op.at })
+      case 'pt-item':
+        return op.isNew
+          ? supabase.from('kt_pt_items').upsert({ id: op.id, title: op.title, sort: op.sort }, { onConflict: 'id', ignoreDuplicates: true })
+          : supabase.from('kt_pt_items').update({ title: op.title, active: op.active, sort: op.sort }).eq('id', op.id)
+      case 'pt-reward':
+        return supabase.from('kt_pt_rewards').update({ pts: op.pts }).eq('id', op.id)
       case 'visit':
         return supabase.from('kt_visits').upsert({ id: op.id, at: op.at }, { onConflict: 'id', ignoreDuplicates: true })
     }

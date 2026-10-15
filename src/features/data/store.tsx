@@ -77,13 +77,23 @@ const describe = (op: Op) =>
     need: '我需要',
     'need-done': '準備好了',
     'need-del': '拿掉我需要的',
+    'pt-req': '點數申請',
+    'pt-cancel': '取消申請',
+    'pt-decide': '回覆點數申請',
+    'pt-deliver': '兌現獎勵',
+    'pt-bonus': '驚喜加分',
+    'pt-streak': '一週 5 天加分',
+    'pt-goal': '選目標',
+    'pt-seen': '看過回覆',
+    'pt-item': '加分清單',
+    'pt-reward': '獎勵點數',
   })[op.t]
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const cached = useRef(load<Cache>(CACHE))
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [role, setRole] = useState<Role | null>(cached.current?.role ?? null)
-  const [server, setServer] = useState<Snapshot>(cached.current?.snap ?? emptySnapshot())
+  const [server, setServer] = useState<Snapshot>(() => ({ ...emptySnapshot(), ...cached.current?.snap }))
   const [syncedAt, setSyncedAt] = useState<string | null>(cached.current?.syncedAt ?? null)
   const [queue, setQueue] = useState<Queued[]>(() => load<Queued[]>(QUEUE) ?? [])
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -186,7 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       t = setTimeout(() => void refresh(), 250)
     }
     const ch = supabase.channel('kid-tasks')
-    for (const table of ['kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs'])
+    for (const table of ['kt_tasks', 'kt_asks', 'kt_checks', 'kt_messages', 'kt_reads', 'kt_bank', 'kt_exams', 'kt_visits', 'kt_needs', 'kt_pt_items', 'kt_pt_rewards', 'kt_pt_reqs', 'kt_pt_ledger', 'kt_pt_state'])
       ch.on('postgres_changes', { event: '*', schema: 'public', table }, later)
     ch.subscribe()
     return () => {
