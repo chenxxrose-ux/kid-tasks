@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { newId, useStore } from '../data/store'
 import { HOLIDAY_SOURCE, SCHOOL_SOURCE } from '../../lib/calendar'
-import { WK, mdw, taipeiToday } from '../../lib/dates'
+import { WK, mdw, stamp, taipeiToday } from '../../lib/dates'
+import { doneLog } from '../../lib/schedule'
 import type { Exam, Task } from '../../lib/types'
-import { SyncNotes } from '../../ui/kit'
+import { Fold, SyncNotes } from '../../ui/kit'
 
 type EditSlot = Task['slot']
 const SLOTS: [EditSlot, string][] = [
@@ -39,6 +40,7 @@ export function PlanPage({ examId }: { examId: string | null }) {
       </header>
       <main>
         <SyncNotes />
+        <DoneLog />
         <section className="group">
           <h2>考試</h2>
           <div className="card">
@@ -284,3 +286,33 @@ function TaskForm({ task, isNew, onClose }: { task: Task; isNew: boolean; onClos
   )
 }
 
+
+/** 完成紀錄：準備好的「樂樂需要」、做完的「老師說」不放第一頁，收在這裡 */
+function DoneLog() {
+  const { data, run } = useStore()
+  const today = taipeiToday()
+  const rows = doneLog(today, data)
+  return (
+    <Fold title="完成紀錄" hint={rows.length ? `近兩個月 ${rows.length} 件` : undefined}>
+      {rows.length ? (
+        rows.map((r) => (
+          <div className="line" key={`${r.kind}:${r.id}`}>
+            <div className="tt">
+              <b>{r.title}</b>
+              <small>
+                {r.kind === 'need' ? '樂樂需要・準備好了' : '老師說・做完了'} {stamp(r.at, today)}
+              </small>
+            </div>
+            {r.kind === 'need' ? (
+              <button className="linkbtn" onClick={() => run({ t: 'need-done', id: r.id, at: null })}>
+                還沒準備
+              </button>
+            ) : null}
+          </div>
+        ))
+      ) : (
+        <div className="empty">樂樂需要的東西準備好、老師說的事做完，會收到這裡。</div>
+      )}
+    </Fold>
+  )
+}

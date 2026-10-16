@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../features/data/store'
 import { unread } from '../lib/schedule'
 import { hmOf, stamp, taipeiToday } from '../lib/dates'
@@ -96,5 +97,22 @@ export function AddRow({ label, onClick, children }: { label: string; onClick: (
         </span>
       </button>
     </div>
+  )
+}
+
+/** 收起來的區塊：點標題才打開 */
+export function Fold({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <section className="card">
+      <button className={`parthd ${open ? 'open' : ''}`} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <span>{title}</span>
+        {hint ? <span className="pc">{hint}</span> : null}
+        <span className="chev" aria-hidden="true">
+          ›
+        </span>
+      </button>
+      {open ? <div className="ptfold">{children}</div> : null}
+    </section>
   )
 }
