@@ -84,13 +84,13 @@ export function KidNeeds() {
 export function MomNeeds() {
   const { data, run } = useStore()
   const today = taipeiToday()
-  const list = needsFor(today, data)
+  // 準備好的收到「安排 › 完成紀錄」，第一頁只留還沒準備的
+  const list = needsFor(today, data).filter((n) => !n.done_at)
   if (!list.length) return null
-  const left = list.filter((n) => !n.done_at).length
   return (
     <section className="need" aria-label="樂樂需要">
       <h2>
-        樂樂需要<span>{left ? `還有 ${left} 件要準備` : '都準備好了'}</span>
+        樂樂需要<span>還有 {list.length} 件要準備</span>
       </h2>
       <div className="card">
         {list.map((n) => (

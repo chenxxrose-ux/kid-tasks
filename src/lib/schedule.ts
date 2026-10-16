@@ -134,3 +134,14 @@ export function needsFor(today: string, s: Snapshot) {
         Number(Boolean(a.done_at)) - Number(Boolean(b.done_at)) || (a.due ?? '9999').localeCompare(b.due ?? '9999') || a.created_at.localeCompare(b.created_at),
     )
 }
+
+export type DoneEntry = { id: string; kind: 'need' | 'teacher'; title: string; at: string }
+
+/** 做完、準備好的「樂樂需要」和「老師說」：第一頁不放，收在安排的完成紀錄 */
+export function doneLog(today: string, s: Snapshot, keepDays = 60): DoneEntry[] {
+  const since = addDays(today, -keepDays)
+  const out: DoneEntry[] = []
+  for (const n of s.needs ?? []) if (n.done_at && !n.removed_at && dayOf(n.done_at) >= since) out.push({ id: n.id, kind: 'need', title: n.title, at: n.done_at })
+  for (const t of teacherItems(today, s, keepDays)) if (t.doneAt) out.push({ id: t.askId, kind: 'teacher', title: t.title, at: t.doneAt })
+  return out.sort((a, b) => (a.at < b.at ? 1 : -1))
+}

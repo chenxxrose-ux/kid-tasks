@@ -17,7 +17,7 @@ import {
   rewardGroups,
   weekDots,
 } from '../../lib/points'
-import { SyncNotes } from '../../ui/kit'
+import { Fold, SyncNotes } from '../../ui/kit'
 import type { PtReq, PtReward, Snapshot } from '../../lib/types'
 
 const now = () => new Date().toISOString()
@@ -384,21 +384,6 @@ function History() {
   )
 }
 
-function Fold({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <section className="card">
-      <button className={`parthd ${open ? 'open' : ''}`} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <span>{title}</span>
-        {hint ? <span className="pc">{hint}</span> : null}
-        <span className="chev" aria-hidden="true">
-          ›
-        </span>
-      </button>
-      {open ? <div className="ptfold">{children}</div> : null}
-    </section>
-  )
-}
 
 function MomPoints() {
   const { data } = useStore()

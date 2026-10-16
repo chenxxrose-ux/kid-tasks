@@ -325,7 +325,7 @@ function MomToday({ goMsgs, goPlan, goPts }: { goMsgs: () => void; goPlan: (exam
             </div>
           </section>
         ) : null}
-        {day === today ? <TeacherBox items={teacherItems(today, data, 7)} /> : null}
+        {day === today ? <TeacherBox items={teacherItems(today, data)} /> : null}
         <ExamCard day={day} onFill={goPlan} />
         {PARTS.map((p) => {
           const list = ts.filter((t) => p.slots.includes(t.slot))

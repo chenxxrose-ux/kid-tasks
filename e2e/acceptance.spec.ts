@@ -110,14 +110,19 @@ test('老師說：樂樂自己記，媽媽們馬上看到；打勾後媽媽們�
 
   const mbox = mom.locator('.teach')
   await expect(mbox).toContainText('帶直笛')
-  await expect(mbox.locator('h2')).toContainText('0 / 1 完成')
+  await expect(mbox.locator('h2')).toContainText('1 件')
 
+  // 做完的不留在第一頁，收到「安排 › 完成紀錄」
   await kbox.getByRole('button', { name: /帶直笛/ }).click()
   await expect(kbox.getByRole('button', { name: /帶直笛/ })).toHaveCount(0)
-  await expect(mbox.locator('h2')).toContainText('1 / 1 完成')
-  await expect(mbox.locator('.time')).toHaveText(/^\d\d:\d\d$/)
+  await expect(mbox).not.toContainText('帶直笛')
+  await mom.getByRole('button', { name: /^安排/ }).click()
+  await mom.getByRole('button', { name: /完成紀錄/ }).click()
+  await expect(mom.locator('.ptfold')).toContainText('帶直笛')
+  await expect(mom.locator('.ptfold')).toContainText(/老師說・做完了 \d\d:\d\d/)
+  await mom.getByRole('button', { name: /^今日事/ }).click()
   await kid.locator('.toast').getByRole('button', { name: '復原' }).click()
-  await expect(mbox.locator('h2')).toContainText('0 / 1 完成')
+  await expect(mbox).toContainText('帶直笛')
 
   // 媽媽們也能記、能拿掉
   await mbox.getByRole('button', { name: /記下老師/ }).click()
@@ -151,8 +156,15 @@ test('我需要：樂樂寫，媽媽們按準備好了，樂樂看到時間', as
   await expect(mbox.locator('h2')).toContainText('樂樂需要')
   await expect(mbox.locator('h2')).toContainText('還有 1 件要準備')
   await mbox.getByRole('button', { name: /美勞課的色紙/ }).click()
-  await expect(mbox.locator('h2')).toContainText('都準備好了')
+  await expect(mbox).toHaveCount(0) // 準備好的收到完成紀錄
   await expect(kbox).toContainText(/準備好了 \d\d:\d\d/)
+  // 按錯了：完成紀錄裡按「還沒準備」放回第一頁
+  await mom.getByRole('button', { name: /^安排/ }).click()
+  await mom.getByRole('button', { name: /完成紀錄/ }).click()
+  await expect(mom.locator('.ptfold')).toContainText(/樂樂需要・準備好了 \d\d:\d\d/)
+  await mom.locator('.ptfold').getByRole('button', { name: '還沒準備' }).click()
+  await mom.getByRole('button', { name: /^今日事/ }).click()
+  await expect(mbox.locator('h2')).toContainText('還有 1 件要準備')
 
   // 樂樂可以拿掉還沒準備的
   await kbox.getByRole('button', { name: '還需要別的' }).click()

@@ -14,7 +14,8 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
   const today = taipeiToday()
   const left = items.filter((t) => !t.doneAt)
   const kid = role === 'kid'
-  const shown = kid ? left : items
+  // 做完的收到「安排 › 完成紀錄」，第一頁只留還沒做的
+  const shown = left
   const [adding, setAdding] = useState(false)
   return (
     <section className="teach" aria-label="老師說">
@@ -23,7 +24,7 @@ export function TeacherBox({ items, onTick }: { items: TeacherItem[]; onTick?: (
         <h2>
           老師說
           <span>
-            {kid ? `${left.length} 件` : `${items.length - left.length} / ${items.length} 完成`}
+            {left.length} 件
             {adding ? null : <AddButton label="記下老師說的事" onClick={() => setAdding(true)} />}
           </span>
         </h2>
